@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import '../pages/Signin.css';
+import axios from 'axios';
 
 const date = new Date();
 
@@ -10,26 +11,17 @@ export const Signin = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent default form submission behavior
-
+    const payload = { email, password };
+    
     try {
-      const response = await fetch('http://localhost:3000/api/signin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }), // Send email and password
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        alert(data.message); // Sign in successful
-        // You can also redirect or perform additional actions here
-      } else {
-        setErrorMessage(data.message); // Show error message
+      const response = await axios.post('http://localhost:3000/api/signin', payload);
+      console.log('response', response);
+      if (response.status === 200) {
+        alert("Login successful");
       }
     } catch (error) {
-      console.error('Error:', error);
-      setErrorMessage('An error occurred while signing in.'); // Handle network errors
+      console.log('error', error);
+      setErrorMessage('Login failed. Please check your credentials.');
     }
   };
 
