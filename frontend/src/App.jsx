@@ -3,6 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { Route, BrowserRouter, Routes } from 'react-router-dom'
 import { Signin } from './pages/Signin'
 import { Selectyear } from './components/selectyear';
+import { Mainpage } from './pages/Mainpage';
 
 
 function App() {
@@ -15,7 +16,7 @@ function App() {
         <Routes>
 
           <Route exact path='/' element={<Signin />} />
-          <Route exact path='/mainpage' element={<Selectyear />} />
+          <Route  path='/mainpage' element={<Mainpage />} />
 
         </Routes>
 
