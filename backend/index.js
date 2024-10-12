@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const db = require('./database/connection'); // Import the DB connection
 const cors = require('cors');
-const { signIn } = require('./controller/signin');
+const { signIn,getYears } = require('./controller/signin');
 
 // Middleware for parsing JSON and URL-encoded data
 app.use(express.json()); // Built-in middleware for parsing JSON
@@ -11,6 +11,9 @@ app.use(cors());
 
 // API endpoint for user sign-in
 app.post('/api/signin', signIn); // Corrected route
+
+
+app.get('/api/years', getYears);
 
 // Define a port for the server
 const PORT = 3000;

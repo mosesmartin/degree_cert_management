@@ -72,3 +72,26 @@ exports.signIn = async (req, res) => {
   }
 };
 
+
+
+exports.getYears = async (req, res) => {
+  try {
+    const query = `SELECT DISTINCT(year) FROM studentrecords ORDER BY year DESC;`;
+
+    // Use db to execute the query
+    connection.query(query, (err, results) => {
+      if (err) {
+        console.error("Error fetching years:", err);
+        return res.status(500).json({ error: "Error fetching years" });
+      }
+      console.log('year results',results)
+
+      // Send the fetched years back as JSON
+      return res.status(200).json(results);
+    });
+
+  } catch (error) {
+    console.error("Server Error:", error);
+    return res.status(500).json({ error: "Server error" });
+  }
+};
