@@ -3,6 +3,8 @@ const app = express();
 const db = require('./database/connection'); // Import the DB connection
 const cors = require('cors');
 const { signIn,getYears, getStudents } = require('./controller/signin');
+// const { Importfile } = require('../frontend/src/components/Importfile');
+const filesimport = require('./controller/filesimport');
 
 // Middleware for parsing JSON and URL-encoded data
 app.use(express.json()); // Built-in middleware for parsing JSON
@@ -11,13 +13,13 @@ app.use(cors());
 
 // API endpoint for user sign-in
 app.post('/api/signin', signIn); // Corrected route
-
+app.post('/api/import', filesimport); // Corrected route
 
 app.get('/api/years', getYears);
 app.get('/api/getYear', getStudents);
 
 // Define a port for the server
-const PORT = 3000;
+const PORT = 8000;
 
 // Basic route
 app.get('/', (req, res) => {

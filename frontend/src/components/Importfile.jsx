@@ -1,8 +1,45 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Form from 'react-bootstrap/Form';
+import Button from 'react-bootstrap/Button';
+import Papa from 'papaparse';
+import axios from 'axios'; // Import axios for making HTTP requests
 import './Importfile.css'; // Make sure to create this CSS file
+import { API_BASE_URL } from '../ApiConfig';
 
 export const Importfile = () => {
+  const [data, setData] = useState([]);
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      parseCSV(file);
+    }
+  };
+
+  const parseCSV = (file) => {
+    Papa.parse(file, {
+      complete: (results) => {
+        setData(results.data);
+        console.log("Parsed Data Arun:", results.data); // Log the parsed data
+      },
+      header: true,
+      skipEmptyLines: true,
+    });
+  };
+
+  const handleImportClick = () => {
+    // Send data to the server
+    axios.post(`${API_BASE_URL}/import`, data)
+      .then(response => {
+        console.log(response.data.message);
+        // Optionally handle success (e.g., show a success message)
+      })
+      .catch(error => {
+        console.error("There was an error importing the data!", error);
+        // Optionally handle error (e.g., show an error message)
+      });
+  };
+
   return (
     <div className="import-container">
       <div className="import-form">
@@ -13,8 +50,12 @@ export const Importfile = () => {
             type="file" 
             size="lg" 
             accept=".csv" 
+            onChange={handleFileChange} 
           />
         </Form.Group>
+        <Button onClick={handleImportClick} disabled={data.length === 0}>
+          Import Data
+        </Button>
       </div>
     </div>
   );

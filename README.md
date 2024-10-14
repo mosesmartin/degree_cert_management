@@ -1,1 +1,0 @@
-# degree_cert_management
