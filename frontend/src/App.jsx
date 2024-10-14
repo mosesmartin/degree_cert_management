@@ -4,6 +4,7 @@ import { Route, BrowserRouter, Routes } from 'react-router-dom'
 import { Signin } from './pages/Signin'
 import { Selectyear } from './components/selectyear';
 import { Mainpage } from './pages/Mainpage';
+import { Importfile } from './components/Importfile';
 
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
 
           <Route exact path='/' element={<Signin />} />
           <Route  path='/mainpage' element={<Mainpage />} />
+          <Route exact path='/importfile' element={<Importfile />} />
 
         </Routes>
 
