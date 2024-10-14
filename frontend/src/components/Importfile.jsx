@@ -8,7 +8,7 @@ export const Importfile = () => {
       <div className="import-form">
         <h2>Import File</h2>
         <Form.Group controlId="formFileLg" className="mb-3">
-          <Form.Label>Select a CSV file</Form.Label>
+          <Form.Label>Select a CSV file.</Form.Label>
           <Form.Control 
             type="file" 
             size="lg" 
