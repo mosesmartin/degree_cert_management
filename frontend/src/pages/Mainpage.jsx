@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { Selectyear } from '../components/selectyear'
+import { Selectyear } from '../components/Selectyear'
 // import { Studenttable } from '../components/Studenttable'
-import axios from 'axios';
-import { API_BASE_URL } from '../ApiConfig';
+
+import NavBar from './NavBar';
+
 
 
 export const Mainpage = () => {
@@ -12,6 +13,7 @@ export const Mainpage = () => {
 
 
     <>
+    <NavBar/>
       <Selectyear />
       {/* <Studenttable  /> */}
     </>

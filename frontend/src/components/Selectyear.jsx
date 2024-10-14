@@ -1,107 +1,143 @@
 import React, { useEffect, useState } from 'react';
 import { Table } from 'react-bootstrap';
-import "./Selectyear.css"
+import "./Selectyear.css";
 import axios from 'axios';
 import { API_BASE_URL } from '../ApiConfig';
-// const years = [
-//   '2024FA', '2023FA', '2022FA', '2021FA', '2020FA',
-//   '2024FA', '2023FA', '2022FA', '2021FA', '2020FA',
-//   '2024FA', '2023FA', '2022FA', '2021FA', '2020FA',
-//   '2024FA', '2023FA', '2022FA', '2021FA', '2020FA'
-// ];
+import Form from 'react-bootstrap/Form';
+import Button from 'react-bootstrap/Button';
+import NavBar from '../pages/NavBar';
+
+const StudentRecords = ({ students, checkedStates, setCheckedStates, setPrintEnabled }) => {
+  const handleSelect = (index) => {
+    const newCheckedStates = new Array(checkedStates.length).fill(false); // Reset all to false
+    newCheckedStates[index] = true; // Set the current index to true
+
+    setCheckedStates(newCheckedStates);
+    setPrintEnabled(true); // Enable print button since one is checked
+  };
+
+  const handlePrint = (studentRecord) => {
+    console.log("Printing student record:", studentRecord);
+  };
+
+  return (
+    <>
+
+      {students?.length > 0 && (
+        <div>
+          <h1>Student Records</h1>
+          <Table striped bordered hover>
+            <thead>
+              <tr>
+                <th className="text-center">Select</th>
+                <th className="text-center">Year</th>
+                <th className="text-center">Name</th>
+                <th className="text-center">Roll No</th>
+                <th className="text-center">Graduation Year</th>
+                <th className="text-center">Graduation Month</th>
+                <th className="text-center">Graduation Date</th>
+                <th className="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {students.map((studentRecord, index) => (
+                <tr key={index}>
+                  <td className="text-center">
+                    <Form.Check
+                      aria-label={`option ${index}`}
+                      checked={checkedStates[index]}
+                      onChange={() => handleSelect(index)}
+                    />
+                  </td>
+                  <td className="text-center">{studentRecord.year}</td>
+                  <td className="text-center">{studentRecord.name}</td>
+                  <td className="text-center">{studentRecord.roll_no}</td>
+                  <td className="text-center">{studentRecord.graduation_year}</td>
+                  <td className="text-center">{studentRecord.graduation_month}</td>
+                  <td className="text-center">{studentRecord.graduation_date}</td>
+                  <td className="text-center">
+                    <Button
+                      variant={checkedStates[index] ? "primary" : "outline-primary"} // Change variant based on checked state
+                      onClick={() => handlePrint(studentRecord)}
+                      disabled={!checkedStates[index]} // Only enable if this checkbox is checked
+                    >
+                      Print
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </div>
+      )}
+    </>
+  );
+};
 
 export const Selectyear = () => {
-  // Split the years into rows of three
-  // const rows = [];
-  // for (let i = 0; i < years.length; i += 3) {
-  //   rows.push(years.slice(i, i + 3));
-  // }
   const [years, setYears] = useState([]);
-  console.log('years', years);
-  const [selectedYear,setSelectedYear] = useState(null)
-  console.log('selectedYear', selectedYear);
+  const [selectedYear, setSelectedYear] = useState(null);
+  const [students, setStudents] = useState([]);
+  const [checkedStates, setCheckedStates] = useState([]); // Array to track checked states
+  const [printEnabled, setPrintEnabled] = useState(false); // State to track if print button should be enabled
 
   useEffect(() => {
     const getYears = async () => {
       try {
         const response = await axios.get(`${API_BASE_URL}/years`);
         if (response?.status) {
-          console.log('response of get years api->', response)
-          setYears(response?.data)
+          setYears(response?.data);
         }
       } catch (error) {
-        console.log('error while getting years', years)
+        console.log('Error while getting years', error);
       }
-    }
+    };
 
-    getYears()
+    getYears();
+  }, []);
 
-  }, [])
-
-
-  const [students, setStudents] = useState([]);
   useEffect(() => {
-    if(!selectedYear)return
+    if (!selectedYear) return;
     const getStudents = async () => {
       try {
         const response = await axios.get(`${API_BASE_URL}/getYear?year=${selectedYear}`);
         if (response?.status) {
-          console.log('response of get students api->', response)
-          setStudents(response?.data)
+          setStudents(response?.data);
+          setCheckedStates(new Array(response.data.length).fill(false)); // Reset checked states on new data
+          setPrintEnabled(false); // Reset print button
         }
       } catch (error) {
-        console.log('error while getting ystudentsears', error)
+        console.log('Error while getting students', error);
       }
-    }
+    };
 
-    getStudents()
-
-  }, [selectedYear])
+    getStudents();
+  }, [selectedYear]);
 
   return (
     <>
-    <div>
-      <h1>Select Year</h1>
-      <Table striped bordered hover>
-        <tbody>
-          {years?.map((item, index) => (
-            <tr key={index}>
-              <td className="text-center" onClick={(e)=> setSelectedYear(item?.year)}>{item?.year}</td>
+      <div>
+        <h1>Select Year</h1>
+        <Table striped bordered hover>
+          <tbody>
+            {years?.map((item, index) => (
+              <tr key={index}>
+                <td className="text-center" onClick={() => setSelectedYear(item?.year)}>
+                  {item?.year}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </div>
 
-            </tr>
-          ))}
-        </tbody>
-      </Table>
-    </div>
-
-    {/* -----------------------------------------------Student Records------------------------ */}
-   {students?.length > 0 && <div>
-      <h1>Student Records</h1>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th className="text-center">Year</th>
-            <th className="text-center">Name</th>
-            <th className="text-center">Roll No</th>
-            <th className="text-center">Graduation Year</th>
-            <th className="text-center">Graduation Month</th>
-            <th className="text-center">Graduation Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          {students?.map((studentRecord, index) => (
-            <tr key={index}>
-              <td className="text-center">{studentRecord.year}</td>
-              <td className="text-center">{studentRecord.name}</td>
-              <td className="text-center">{studentRecord.roll_no}</td>
-              <td className="text-center">{studentRecord.graduation_year}</td>
-              <td className="text-center">{studentRecord.graduation_month}</td>
-              <td className="text-center">{studentRecord.graduation_date}</td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
-    </div>}
-          </>
+      {/* Student Records Section */}
+      <StudentRecords
+        students={students}
+        checkedStates={checkedStates}
+        setCheckedStates={setCheckedStates}
+        setPrintEnabled={setPrintEnabled}
+      />
+    </>
   );
 };

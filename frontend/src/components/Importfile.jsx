@@ -5,6 +5,7 @@ import Papa from 'papaparse';
 import axios from 'axios'; // Import axios for making HTTP requests
 import './Importfile.css'; // Make sure to create this CSS file
 import { API_BASE_URL } from '../ApiConfig';
+import NavBar from '../pages/NavBar';
 
 export const Importfile = () => {
   const [data, setData] = useState([]);
@@ -41,6 +42,8 @@ export const Importfile = () => {
   };
 
   return (
+    <>
+    < NavBar/>
     <div className="import-container">
       <div className="import-form">
         <h2>Import File</h2>
@@ -58,5 +61,6 @@ export const Importfile = () => {
         </Button>
       </div>
     </div>
+    </> 
   );
 };

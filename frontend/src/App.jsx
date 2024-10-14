@@ -2,7 +2,6 @@ import { useState } from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Route, BrowserRouter, Routes } from 'react-router-dom'
 import { Signin } from './pages/Signin'
-import { Selectyear } from './components/selectyear';
 import { Mainpage } from './pages/Mainpage';
 import { Importfile } from './components/Importfile';
 
