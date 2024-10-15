@@ -40,7 +40,7 @@ const filesimport = (req, res) => {
 
       // If all records have been processed without errors, send a success response
       if (recordsProcessed === records.length) {
-        res.status(200).json({ message: 'Data imported successfully!' });
+        res.status(200).json({ message: `${recordsProcessed} records imported successfully.` });
       }
     });
   });

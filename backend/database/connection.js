@@ -4,7 +4,7 @@ const mysql = require('mysql2');
 
 // Create a connection pool (recommended for managing connections)
 const connection = mysql.createConnection({
-  host: 'localhost',
+  host: '10.15.17.17',
   user: 'root',            // Your MySQL username
   password: 'mosar@2024', // Your MySQL password
   database: 'degreesdb'  // Your MySQL database name
@@ -28,20 +28,3 @@ module.exports = connection;
 
 
 
-// const mysql = require('mysql2');
-
-// // Create a connection pool (better for handling multiple connections)
-// const pool = mysql.createPool({
-//   host: 'localhost',
-//   user: 'root',            // Your MySQL username
-//   password: process.env.DB_PASSWORD || 'mosar@2024', // Use environment variables for sensitive data
-//   database: 'degreesdb',  // Your MySQL database name
-//   waitForConnections: true,
-//   connectionLimit: 10,
-//   queueLimit: 0
-// });
-
-// // Promisify the connection for async/await use
-// const connection = pool.promise();
-
-// module.exports = connection;

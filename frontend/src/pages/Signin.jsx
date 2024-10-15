@@ -23,6 +23,10 @@ export const Signin = () => {
       console.log('response', response);
       if (response.status === 200) {
         // alert("Login successful");
+        const user = response?.data?.user
+        const token = response?.data?.token
+        sessionStorage.setItem('user',JSON.stringify(user))
+        sessionStorage.setItem('token',token)
         navigate('/mainpage'); // Redirect to the main page after successful login
       }
     } catch (error) {
@@ -32,7 +36,7 @@ export const Signin = () => {
   };
 
   return (
-    <div>
+    <div className='formBody'>
       <form className="form-signin" onSubmit={handleSubmit}>
         <h1 className="h3 mb-3 font-weight-normal">Please sign in</h1>
         <label htmlFor="inputEmail" className="sr-only">Email address</label>

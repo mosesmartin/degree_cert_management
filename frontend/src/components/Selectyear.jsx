@@ -6,15 +6,22 @@ import { API_BASE_URL } from '../ApiConfig';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import NavBar from '../pages/NavBar';
+import Spinner from 'react-bootstrap/Spinner';
 
 const StudentRecords = ({ students, checkedStates, setCheckedStates, setPrintEnabled }) => {
+
   const handleSelect = (index) => {
     const newCheckedStates = new Array(checkedStates.length).fill(false); // Reset all to false
-    newCheckedStates[index] = true; // Set the current index to true
-
+    newCheckedStates[index] = true; // Set the selected one to true
+  
     setCheckedStates(newCheckedStates);
-    setPrintEnabled(true); // Enable print button since one is checked
+  
+    // Check if any checkbox is selected to enable the print button
+    const isAnyChecked = newCheckedStates.some(state => state === true);
+    setPrintEnabled(isAnyChecked);
   };
+  
+
 
   const handlePrint = (studentRecord) => {
     console.log("Printing student record:", studentRecord);
@@ -22,7 +29,6 @@ const StudentRecords = ({ students, checkedStates, setCheckedStates, setPrintEna
 
   return (
     <>
-
       {students?.length > 0 && (
         <div>
           <h1>Student Records</h1>
@@ -81,6 +87,7 @@ export const Selectyear = () => {
   const [checkedStates, setCheckedStates] = useState([]); // Array to track checked states
   const [printEnabled, setPrintEnabled] = useState(false); // State to track if print button should be enabled
 
+  const [loading, setLoading] = useState(false)
   useEffect(() => {
     const getYears = async () => {
       try {
@@ -100,14 +107,20 @@ export const Selectyear = () => {
     if (!selectedYear) return;
     const getStudents = async () => {
       try {
+        setLoading(true)
         const response = await axios.get(`${API_BASE_URL}/getYear?year=${selectedYear}`);
         if (response?.status) {
           setStudents(response?.data);
           setCheckedStates(new Array(response.data.length).fill(false)); // Reset checked states on new data
           setPrintEnabled(false); // Reset print button
+          setLoading(false)
+
         }
       } catch (error) {
         console.log('Error while getting students', error);
+      } finally {
+        setLoading(false)
+
       }
     };
 
@@ -122,7 +135,7 @@ export const Selectyear = () => {
           <tbody>
             {years?.map((item, index) => (
               <tr key={index}>
-                <td className="text-center" onClick={() => setSelectedYear(item?.year)}>
+                <td className="text-center" style={{ cursor: 'pointer' }} onClick={() => setSelectedYear(item?.year)}>
                   {item?.year}
                 </td>
               </tr>
@@ -132,12 +145,23 @@ export const Selectyear = () => {
       </div>
 
       {/* Student Records Section */}
-      <StudentRecords
-        students={students}
-        checkedStates={checkedStates}
-        setCheckedStates={setCheckedStates}
-        setPrintEnabled={setPrintEnabled}
-      />
+      {loading ?
+        <div className='mt-5 pt-5'>
+          <Spinner animation="border" role="status">
+          </Spinner >
+        </div>
+
+        :
+        <div>
+          <StudentRecords
+            students={students}
+            checkedStates={checkedStates}
+            setCheckedStates={setCheckedStates}
+            setPrintEnabled={setPrintEnabled}
+          />
+
+        </div>
+      }
     </>
   );
 };

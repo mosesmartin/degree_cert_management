@@ -37,6 +37,7 @@
 
 const connection = require('../database/connection');
 const jwt = require('jsonwebtoken'); // JWT for session management (optional)
+const crypto = require('crypto')
 
 // Function to handle sign-in
 exports.signIn = async (req, res) => {
@@ -57,12 +58,14 @@ exports.signIn = async (req, res) => {
 
     const user = results[0];
 
-    // Directly compare the provided password with the stored password
-    if (password === user.password) {
-      // Generate a JWT token (optional)
-      const token = jwt.sign({ id: user.id, email: user.email }, 'your_secret_key', { expiresIn: '1h' });
+    // Hash the provided password using SHA-256 and compare it with the stored hash
+    const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
 
-      return res.status(200).json({ message: 'Sign in successful!', token });
+    if (hashedPassword === user.password) {
+      // Generate a JWT token
+      const token = jwt.sign({ id: user.id, email: user.email }, 'FCC_DMS_@_2024', { expiresIn: '1h' });
+
+      return res.status(200).json({ message: 'Sign in successful!', user: user, token: token });
     } else {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
