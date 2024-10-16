@@ -1,0 +1,14 @@
+@font-face {
+    font-family: "Goteborg";
+    src: url("../assets/font/63fe2f2e88c9eaf8510336abfda9bc19.eot");
+    src: url("../assets/font/Goteborg.otf")format("embedded-opentype"),
+    url("../assets/font/63fe2f2e88c9eaf8510336abfda9bc19.woff2")format("woff2"),
+
+
+
+    url("../assets/font/63fe2f2e88c9eaf8510336abfda9bc19.woff")format("woff"),
+    url("../assets/font/63fe2f2e88c9eaf8510336abfda9bc19.ttf")format("truetype"),
+    url("../assets/font/63fe2f2e88c9eaf8510336abfda9bc19.svg")format("svg");
+
+
+}

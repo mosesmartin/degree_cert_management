@@ -6,11 +6,16 @@ import './Selectyear.css';
 import { MdPrint } from 'react-icons/md';
 import { FaTrash } from 'react-icons/fa';
 import {FaEdit } from 'react-icons/fa';
+import DegreeOverlay from './DegreeOverlay';
 
 
 const StudentRecords = ({ students, checkedStates, setCheckedStates, setPrintEnabled, setStudents }) => {
   const [editingStudent, setEditingStudent] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+
+  // Inside StudentRecords component
+const [showOverlayModal, setShowOverlayModal] = useState(false);
+const [selectedStudent, setSelectedStudent] = useState(null);
 
   const handleSelect = (index) => {
     const newCheckedStates = checkedStates.map((_, i) => i === index);
@@ -18,9 +23,16 @@ const StudentRecords = ({ students, checkedStates, setCheckedStates, setPrintEna
     setPrintEnabled(newCheckedStates.some(state => state));
   };
 
-  const handlePrint = (studentRecord) => {
-    console.log('Printing student record:', studentRecord);
+  // const handlePrint = (studentRecord) => {
+  //   console.log('Printing student record:', studentRecord);
+  // };
+  const handleDegreePrint = (studentRecord) => {
+    setSelectedStudent(studentRecord);
+    setShowOverlayModal(true);
+    
   };
+  
+  
 
   const handleDelete = async (studentRecord, index) => {
     const confirmMessage = `Are you sure you want to remove the student?\nName: ${studentRecord.name}\nRoll No: ${studentRecord.roll_no}\nYear: ${studentRecord.year}`;
@@ -100,7 +112,7 @@ const StudentRecords = ({ students, checkedStates, setCheckedStates, setPrintEna
                   <td className="text-center">
                     <Button
                       variant={checkedStates[index] ? 'outline-primary' : 'outline-primary'}
-                      onClick={() => handlePrint(studentRecord)}
+                      onClick={() => handleDegreePrint (studentRecord)}
                       disabled={!checkedStates[index]}
                     >
                       <MdPrint/>
@@ -128,6 +140,38 @@ const StudentRecords = ({ students, checkedStates, setCheckedStates, setPrintEna
               ))}
             </tbody>
           </Table>
+
+          // Add a Modal for DegreeOverlay
+  <Modal show={showOverlayModal} onHide={() => setShowOverlayModal(false)} size="lg">
+    <Modal.Header closeButton>
+      <Modal.Title>Degree Print Preview</Modal.Title>
+    </Modal.Header>
+    <Modal.Body>
+      {selectedStudent && (
+        <DegreeOverlay studentRecord={selectedStudent} canvasWidth={782} canvasHeight={600} />
+      )}
+    </Modal.Body>
+    <Modal.Footer>
+      <Button variant="secondary" onClick={() => setShowOverlayModal(false)}>
+        Close
+      </Button>
+      <Button variant="primary" onClick={() => {
+        // Print the canvas content here
+        const canvas = document.querySelector('canvas');
+        const printWindow = window.open('', 'PRINT', 'height=600,width=800');
+       printWindow.document.write('<html><head><title>Print Degree</title></head><body>');
+        printWindow.document.write(`<img src="${canvas.toDataURL()}" />`);
+        printWindow.document.close();
+        // printWindow.focus();
+        printWindow.print();
+       
+        // printWindow.close();
+      }}>
+        Print
+      </Button>
+    </Modal.Footer>
+  </Modal>
+
 
           {/* Edit Student Modal */}
           <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
