@@ -31,9 +31,9 @@ const StudentRecords = ({ students, checkedStates, setCheckedStates, setPrintEna
       return;
     }
 
-    const printWindow = window.open('', 'PRINT', 'height=1000,width=auto');
+    const printWindow = window.open('', 'PRINT', 'height=3300,width=2550');
     printWindow.document.write('<html><head><title>Print Degree</title></head><body>');
-    printWindow.document.write(`<img src="${canvas.toDataURL('image/png')}" style="width:auto;height:auto;"/>`);
+    printWindow.document.write(`<img src="${canvas.toDataURL('image/png')}" style="width:3300;height:2550;"/>`);
     printWindow.document.close();
     printWindow.focus();
     printWindow.print();
@@ -154,7 +154,7 @@ const StudentRecords = ({ students, checkedStates, setCheckedStates, setPrintEna
             </Modal.Header>
             <Modal.Body>
               {selectedStudent && (
-                <DegreeOverlay studentRecord={selectedStudent} canvasWidth={782} canvasHeight={600} />
+                <DegreeOverlay studentRecord={selectedStudent} canvasWidth={3300} canvasHeight={2550} />
               )}
             </Modal.Body>
             <Modal.Footer>
