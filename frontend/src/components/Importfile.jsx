@@ -41,6 +41,23 @@ export const Importfile = () => {
       });
   };
 
+
+  // const handleImportClick = async (data) => {
+  //   try {
+  //     await axios.post(`${API_BASE_URL}/import`, data, {
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       maxContentLength: Infinity, // Set this to handle large payloads
+  //       maxBodyLength: Infinity,    // Set this to handle large payloads
+  //     });
+  //     console.log("Data imported successfully!");
+  //   } catch (error) {
+  //     console.error("There was an error importing the data!", error);
+  //   }
+  // };
+
+
   return (
     <>
     < NavBar/>

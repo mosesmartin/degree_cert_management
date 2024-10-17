@@ -4,18 +4,14 @@ import axios from 'axios';
 import { API_BASE_URL } from '../ApiConfig';
 import './Selectyear.css';
 import { MdPrint } from 'react-icons/md';
-import { FaTrash } from 'react-icons/fa';
-import {FaEdit } from 'react-icons/fa';
+import { FaTrash, FaEdit } from 'react-icons/fa';
 import DegreeOverlay from './DegreeOverlay';
-
 
 const StudentRecords = ({ students, checkedStates, setCheckedStates, setPrintEnabled, setStudents }) => {
   const [editingStudent, setEditingStudent] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
-
-  // Inside StudentRecords component
-const [showOverlayModal, setShowOverlayModal] = useState(false);
-const [selectedStudent, setSelectedStudent] = useState(null);
+  const [showOverlayModal, setShowOverlayModal] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
 
   const handleSelect = (index) => {
     const newCheckedStates = checkedStates.map((_, i) => i === index);
@@ -23,16 +19,26 @@ const [selectedStudent, setSelectedStudent] = useState(null);
     setPrintEnabled(newCheckedStates.some(state => state));
   };
 
-  // const handlePrint = (studentRecord) => {
-  //   console.log('Printing student record:', studentRecord);
-  // };
   const handleDegreePrint = (studentRecord) => {
     setSelectedStudent(studentRecord);
     setShowOverlayModal(true);
-    
   };
-  
-  
+
+  const handlePrint = () => {
+    const canvas = document.querySelector('canvas');
+    if (!canvas) {
+      console.error('Canvas not found!');
+      return;
+    }
+
+    const printWindow = window.open('', 'PRINT', 'height=1000,width=auto');
+    printWindow.document.write('<html><head><title>Print Degree</title></head><body>');
+    printWindow.document.write(`<img src="${canvas.toDataURL('image/png')}" style="width:auto;height:auto;"/>`);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    // printWindow.close();
+  };
 
   const handleDelete = async (studentRecord, index) => {
     const confirmMessage = `Are you sure you want to remove the student?\nName: ${studentRecord.name}\nRoll No: ${studentRecord.roll_no}\nYear: ${studentRecord.year}`;
@@ -45,7 +51,6 @@ const [selectedStudent, setSelectedStudent] = useState(null);
           setStudents(updatedStudents);
           setCheckedStates(new Array(updatedStudents.length).fill(false));
           setPrintEnabled(false);
-          console.log('Deleting student with roll_no:', studentRecord.roll_no);
         }
       } catch (error) {
         console.error('Error while deleting student', error);
@@ -68,7 +73,6 @@ const [selectedStudent, setSelectedStudent] = useState(null);
         );
         setStudents(updatedStudents);
         setShowEditModal(false);
-        console.log('Updated student:', editingStudent);
       }
     } catch (error) {
       console.error('Error while updating student', error);
@@ -87,6 +91,7 @@ const [selectedStudent, setSelectedStudent] = useState(null);
                 <th className="text-center">Year</th>
                 <th className="text-center">Name</th>
                 <th className="text-center">Roll No</th>
+                <th className="text-center">Major</th>
                 <th className="text-center">Graduation Year</th>
                 <th className="text-center">Graduation Month</th>
                 <th className="text-center">Graduation Date</th>
@@ -94,84 +99,73 @@ const [selectedStudent, setSelectedStudent] = useState(null);
               </tr>
             </thead>
             <tbody>
-              {students.map((studentRecord, index) => (
-                <tr key={studentRecord.roll_no}>
-                  <td className="text-center">
-                    <Form.Check
-                      aria-label={`Select ${studentRecord.name}`}
-                      checked={checkedStates[index]}
-                      onChange={() => handleSelect(index)}
-                    />
-                  </td>
-                  <td className="text-center">{studentRecord.year}</td>
-                  <td className="text-center">{studentRecord.name}</td>
-                  <td className="text-center">{studentRecord.roll_no}</td>
-                  <td className="text-center">{studentRecord.graduation_year}</td>
-                  <td className="text-center">{studentRecord.graduation_month}</td>
-                  <td className="text-center">{studentRecord.graduation_date}</td>
-                  <td className="text-center">
-                    <Button
-                      variant={checkedStates[index] ? 'outline-primary' : 'outline-primary'}
-                      onClick={() => handleDegreePrint (studentRecord)}
-                      disabled={!checkedStates[index]}
-                    >
-                      <MdPrint/>
-                    </Button>
-                    <Button
-                      variant="outline-warning"
-                      onClick={() => handleEdit(studentRecord)}
-                      className="ml-2"
-                      disabled={!checkedStates[index]} // Disable if checkbox is not checked
-                    >
-                     <FaEdit />
-                    </Button>
-                    <Button
-                      variant="outline-danger"
-                      onClick={() => handleDelete(studentRecord, index)}
-                      className="ml-2"
-                      disabled={!checkedStates[index]}
-                    >
-                      {/* delete button react icon */}
-                      <FaTrash />
-
-                    </Button>
-                  </td>
-                </tr>
-              ))}
+            {students
+  .sort((a, b) => a.major.localeCompare(b.major)) // Sort by 'major' in ascending order
+  .map((studentRecord, index) => ( 
+    <tr key={studentRecord.roll_no}>
+      <td className="text-center">
+        <Form.Check
+          aria-label={`Select ${studentRecord.name}`}
+          checked={checkedStates[index]}
+          onChange={() => handleSelect(index)}
+        />
+      </td>
+      <td className="text-center">{studentRecord.year}</td>
+      <td className="text-center">{studentRecord.name}</td>
+      <td className="text-center">{studentRecord.roll_no}</td>
+      <td className="text-center">{studentRecord.major}</td>
+      <td className="text-center">{studentRecord.graduation_year}</td>
+      <td className="text-center">{studentRecord.graduation_month}</td>
+      <td className="text-center">{studentRecord.graduation_date}</td>
+      <td className="text-center">
+        <Button
+          variant={checkedStates[index] ? 'outline-primary' : 'outline-primary'}
+          onClick={() => handleDegreePrint(studentRecord)}
+          disabled={!checkedStates[index]}
+        >
+          <MdPrint />
+        </Button>
+        <Button
+          variant="outline-warning"
+          onClick={() => handleEdit(studentRecord)}
+          className="ml-2"
+          disabled={!checkedStates[index]}
+        >
+          <FaEdit />
+        </Button>
+        <Button
+          variant="outline-danger"
+          onClick={() => handleDelete(studentRecord, index)}
+          className="ml-2"
+          disabled={!checkedStates[index]}
+        >
+          <FaTrash />
+        </Button>
+      </td>
+    </tr>
+  ))}
             </tbody>
           </Table>
 
-          // Add a Modal for DegreeOverlay
-  <Modal show={showOverlayModal} onHide={() => setShowOverlayModal(false)} size="lg">
-    <Modal.Header closeButton>
-      <Modal.Title>Degree Print Preview</Modal.Title>
-    </Modal.Header>
-    <Modal.Body>
-      {selectedStudent && (
-        <DegreeOverlay studentRecord={selectedStudent} canvasWidth={782} canvasHeight={600} />
-      )}
-    </Modal.Body>
-    <Modal.Footer>
-      <Button variant="secondary" onClick={() => setShowOverlayModal(false)}>
-        Close
-      </Button>
-      <Button variant="primary" onClick={() => {
-        // Print the canvas content here
-        const canvas = document.querySelector('canvas');
-        const printWindow = window.open('', 'PRINT', 'height=600,width=800');
-       printWindow.document.write('<html><head><title>Print Degree</title></head><body>');
-        printWindow.document.write(`<img src="${canvas.toDataURL()}" />`);
-        printWindow.document.close();
-        // printWindow.focus();
-        printWindow.print();
-       
-        // printWindow.close();
-      }}>
-        Print
-      </Button>
-    </Modal.Footer>
-  </Modal>
-
+          {/* Degree Print Modal */}
+          <Modal show={showOverlayModal} onHide={() => setShowOverlayModal(false)} size="lg">
+            <Modal.Header closeButton>
+              <Modal.Title>Degree Print Preview</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              {selectedStudent && (
+                <DegreeOverlay studentRecord={selectedStudent} canvasWidth={782} canvasHeight={600} />
+              )}
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onClick={() => setShowOverlayModal(false)}>
+                Close
+              </Button>
+              <Button variant="primary" onClick={handlePrint}>
+                Print
+              </Button>
+            </Modal.Footer>
+          </Modal>
 
           {/* Edit Student Modal */}
           <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
@@ -195,6 +189,14 @@ const [selectedStudent, setSelectedStudent] = useState(null);
                     value={editingStudent?.roll_no || ''}
                     onChange={(e) => setEditingStudent({ ...editingStudent, roll_no: e.target.value })}
                     disabled
+                  />
+                  </Form.Group>
+                <Form.Group controlId="formGraduationYear">
+                  <Form.Label>Major</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={editingStudent?.major || ''}
+                    onChange={(e) => setEditingStudent({ ...editingStudent, major: e.target.value })}
                   />
                 </Form.Group>
                 <Form.Group controlId="formGraduationYear">
