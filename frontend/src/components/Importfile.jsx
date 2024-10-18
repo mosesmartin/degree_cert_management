@@ -6,6 +6,7 @@ import axios from 'axios'; // Import axios for making HTTP requests
 import './Importfile.css'; // Make sure to create this CSS file
 import { API_BASE_URL } from '../ApiConfig';
 import NavBar from '../pages/NavBar';
+import { toast } from 'react-toastify';
 
 export const Importfile = () => {
   const [data, setData] = useState([]);
@@ -33,9 +34,11 @@ export const Importfile = () => {
     axios.post(`${API_BASE_URL}/import`, data)
       .then(response => {
         console.log(response.data.message);
+        toast.success("Data imported successfully")
         // Optionally handle success (e.g., show a success message)
       })
       .catch(error => {
+        toast.error(error?.response?.data?.error)
         console.error("There was an error importing the data!", error);
         // Optionally handle error (e.g., show an error message)
       });

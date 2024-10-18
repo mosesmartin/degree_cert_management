@@ -5,7 +5,8 @@ import { Signin } from './pages/Signin'
 import { Mainpage } from './pages/Mainpage';
 import { Importfile } from './components/Importfile';
 import PrivateRoute from './components/PrivateRoute';
-
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   // const [count, setCount] = useState(0)
@@ -23,6 +24,7 @@ function App() {
 
         </Routes>
 
+        <ToastContainer />
 
       </BrowserRouter>
     </>

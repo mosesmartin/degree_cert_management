@@ -4,8 +4,9 @@ import axios from 'axios';
 import { API_BASE_URL } from '../ApiConfig';
 import './Selectyear.css';
 import { MdPrint } from 'react-icons/md';
-import { FaTrash, FaEdit } from 'react-icons/fa';
+import { FaTrash, FaEdit, FaUpload } from 'react-icons/fa';
 import DegreeOverlay from './DegreeOverlay';
+import { toast } from 'react-toastify';
 
 const StudentRecords = ({ students, checkedStates, setCheckedStates, setPrintEnabled, setStudents }) => {
   const [editingStudent, setEditingStudent] = useState(null);
@@ -51,9 +52,12 @@ const StudentRecords = ({ students, checkedStates, setCheckedStates, setPrintEna
           setStudents(updatedStudents);
           setCheckedStates(new Array(updatedStudents.length).fill(false));
           setPrintEnabled(false);
+          toast.success("Record deleted successfully")
         }
       } catch (error) {
         console.error('Error while deleting student', error);
+        toast.error("Error while deleting student")
+
       }
     }
   };
@@ -73,9 +77,26 @@ const StudentRecords = ({ students, checkedStates, setCheckedStates, setPrintEna
         );
         setStudents(updatedStudents);
         setShowEditModal(false);
+        toast.success("Record updated successfully")
+
       }
     } catch (error) {
+      toast.error("Error while updating studen")
       console.error('Error while updating student', error);
+    }
+  };
+  const handleUpload = async (studentRecord, index) => {
+
+    try {
+      const formData = new FormData();
+      // formData.append("file",file)
+      const response = await axios.post(`${API_BASE_URL}/upload`, formData, { headers: { 'Content-type': 'multipart/form-data' } });
+      if (response.status === 200) {
+        // setStudents(updatedStudents);
+        
+      }
+    } catch (error) {
+      console.error('Error while deleting student', error);
     }
   };
 
@@ -99,51 +120,59 @@ const StudentRecords = ({ students, checkedStates, setCheckedStates, setPrintEna
               </tr>
             </thead>
             <tbody>
-            {students
-  .sort((a, b) => a.major.localeCompare(b.major)) // Sort by 'major' in ascending order
-  .map((studentRecord, index) => ( 
-    <tr key={studentRecord.roll_no}>
-      <td className="text-center">
-        <Form.Check
-          aria-label={`Select ${studentRecord.name}`}
-          checked={checkedStates[index]}
-          onChange={() => handleSelect(index)}
-        />
-      </td>
-      <td className="text-center">{studentRecord.year}</td>
-      <td className="text-center">{studentRecord.name}</td>
-      <td className="text-center">{studentRecord.roll_no}</td>
-      <td className="text-center">{studentRecord.major}</td>
-      <td className="text-center">{studentRecord.graduation_year}</td>
-      <td className="text-center">{studentRecord.graduation_month}</td>
-      <td className="text-center">{studentRecord.graduation_date}</td>
-      <td className="text-center">
-        <Button
-          variant={checkedStates[index] ? 'outline-primary' : 'outline-primary'}
-          onClick={() => handleDegreePrint(studentRecord)}
-          disabled={!checkedStates[index]}
-        >
-          <MdPrint />
-        </Button>
-        <Button
-          variant="outline-warning"
-          onClick={() => handleEdit(studentRecord)}
-          className="ml-2"
-          disabled={!checkedStates[index]}
-        >
-          <FaEdit />
-        </Button>
-        <Button
-          variant="outline-danger"
-          onClick={() => handleDelete(studentRecord, index)}
-          className="ml-2"
-          disabled={!checkedStates[index]}
-        >
-          <FaTrash />
-        </Button>
-      </td>
-    </tr>
-  ))}
+              {students
+                .sort((a, b) => a.major.localeCompare(b.major)) // Sort by 'major' in ascending order
+                .map((studentRecord, index) => (
+                  <tr key={studentRecord.roll_no}>
+                    <td className="text-center">
+                      <Form.Check
+                        aria-label={`Select ${studentRecord.name}`}
+                        checked={checkedStates[index]}
+                        onChange={() => handleSelect(index)}
+                      />
+                    </td>
+                    <td className="text-center">{studentRecord.year}</td>
+                    <td className="text-center">{studentRecord.name}</td>
+                    <td className="text-center">{studentRecord.roll_no}</td>
+                    <td className="text-center">{studentRecord.major}</td>
+                    <td className="text-center">{studentRecord.graduation_year}</td>
+                    <td className="text-center">{studentRecord.graduation_month}</td>
+                    <td className="text-center">{studentRecord.graduation_date}</td>
+                    <td className="text-center">
+                      <Button
+                        variant={checkedStates[index] ? 'outline-primary' : 'outline-primary'}
+                        onClick={() => handleDegreePrint(studentRecord)}
+                        disabled={!checkedStates[index]}
+                      >
+                        <MdPrint />
+                      </Button>
+                      <Button
+                        variant="outline-warning"
+                        onClick={() => handleEdit(studentRecord)}
+                        className="ml-2"
+                        disabled={!checkedStates[index]}
+                      >
+                        <FaEdit />
+                      </Button>
+                      <Button
+                        variant="outline-danger"
+                        onClick={() => handleDelete(studentRecord, index)}
+                        className="ml-2"
+                        disabled={!checkedStates[index]}
+                      >
+                        <FaTrash />
+                      </Button>
+                      <Button
+                        variant="outline-danger"
+                        onClick={() => handleUpload(studentRecord, index)}
+                        className="ml-2"
+                      >
+                        <FaUpload />
+                      </Button>
+
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </Table>
 
@@ -190,7 +219,7 @@ const StudentRecords = ({ students, checkedStates, setCheckedStates, setPrintEna
                     onChange={(e) => setEditingStudent({ ...editingStudent, roll_no: e.target.value })}
                     disabled
                   />
-                  </Form.Group>
+                </Form.Group>
                 <Form.Group controlId="formGraduationYear">
                   <Form.Label>Major</Form.Label>
                   <Form.Control

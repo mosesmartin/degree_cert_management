@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import degreeImg from '../assets/blank_degree_template.jpg'; // Ensure this path is correct
+import degreeImg from '../assets/blank_degree.jpg'; // Ensure this path is correct
 import './DegreeOverlay.css'
 
 const DegreeOverlay = ({ studentRecord, canvasWidth, canvasHeight }) => {
