@@ -3,8 +3,8 @@ import { Table, Form, Button, Spinner, Modal } from 'react-bootstrap';
 import axios from 'axios';
 import { API_BASE_URL } from '../ApiConfig';
 import './Selectyear.css';
-import { MdPrint } from 'react-icons/md';
-import { FaTrash, FaEdit, FaUpload } from 'react-icons/fa';
+import { MdAttachFile, MdPrint } from 'react-icons/md';
+import { FaTrash, FaEdit, FaUpload, FaStreetView } from 'react-icons/fa';
 import DegreeOverlay from './DegreeOverlay';
 import { toast } from 'react-toastify';
 
@@ -99,6 +99,27 @@ const StudentRecords = ({ students, checkedStates, setCheckedStates, setPrintEna
       console.error('Error while deleting student', error);
     }
   };
+  const handleView = async (studentRecord, index) => {
+
+    try {
+      const response = await axios.get(`${API_BASE_URL}/file/${studentRecord?.roll_no}`);
+      console.log('response',response);
+      if (response.status === 200) {
+
+        const fileURL = response?.data?.data;
+
+      // Open the PDF in a new tab
+      window.open(fileURL, '_blank');
+
+
+
+        // setStudents(updatedStudents);
+        
+      }
+    } catch (error) {
+      console.error('Error while view pdf', error);
+    }
+  };
 
   return (
     <>
@@ -168,6 +189,13 @@ const StudentRecords = ({ students, checkedStates, setCheckedStates, setPrintEna
                         className="ml-2"
                       >
                         <FaUpload />
+                      </Button>
+                      <Button
+                        variant="outline-danger"
+                        onClick={() => handleView(studentRecord, index)}
+                        className="ml-2"
+                      >
+                        <MdAttachFile />
                       </Button>
 
                     </td>
