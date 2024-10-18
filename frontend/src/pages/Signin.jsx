@@ -4,6 +4,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { API_BASE_URL } from "../ApiConfig";
 import logo from "../assets/fc_logo.png";
+import { toast } from 'react-toastify';
 
 const date = new Date();
 
@@ -27,10 +28,12 @@ export const Signin = () => {
         sessionStorage.setItem("user", JSON.stringify(user));
         sessionStorage.setItem("token", token);
         navigate("/mainpage"); // Redirect to the main page after successful login
+        toast.success(response?.data?.message)
       }
     } catch (error) {
       console.log("error", error);
-      setErrorMessage("Login failed. Please check your credentials."); // Set error message
+      // setErrorMessage("Login failed. Please check your credentials."); // Set error message
+      toast.error(error?.response?.data?.message)
     }
   };
 
