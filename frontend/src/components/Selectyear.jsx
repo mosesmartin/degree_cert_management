@@ -8,7 +8,7 @@ import { FaTrash, FaEdit, FaUpload, FaStreetView } from 'react-icons/fa';
 import DegreeOverlay from './DegreeOverlay';
 import { toast } from 'react-toastify';
 
-const StudentRecords = ({ students, checkedStates, setCheckedStates, setPrintEnabled, setStudents }) => {
+const StudentRecords = ({ file,students, checkedStates, setCheckedStates, setPrintEnabled, setStudents }) => {
   const [editingStudent, setEditingStudent] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showOverlayModal, setShowOverlayModal] = useState(false);
@@ -16,6 +16,7 @@ const StudentRecords = ({ students, checkedStates, setCheckedStates, setPrintEna
   const [selectedFile, setSelectedFile] = useState(null); // Add state for selected file
   const [uploading, setUploading] = useState(false); // State for upload process
   const [showUploadModal, setShowUploadModal] = useState(false); // Declare showUploadModal state
+
   const handleSelect = (index) => {
     const newCheckedStates = checkedStates.map((_, i) => i === index);
     setCheckedStates(newCheckedStates);
@@ -125,13 +126,13 @@ const StudentRecords = ({ students, checkedStates, setCheckedStates, setPrintEna
         // Create a Blob from the PDF data
         const blob = new Blob([response.data], { type: 'application/pdf' });
         const fileURL = URL.createObjectURL(blob); // Create a URL for the Blob
-
+        
         // Open the PDF in a new tab
         window.open(fileURL, '_blank');
       }
     } catch (error) {
       console.error('Error while viewing PDF:', error);
-      toast.error('No PDF Found')
+      // toast.error('No PDF Found')
     }
   };
 
@@ -237,15 +238,19 @@ const StudentRecords = ({ students, checkedStates, setCheckedStates, setPrintEna
                         onClick={() => {
                           setSelectedStudent(studentRecord); // Set the selected student here
                           handleUploadModalOpen(); // Open the upload modal
+                          
                         }}
+                        disabled={!checkedStates[index]}
                         className="ml-2"
                       >
                         <FaUpload />
                       </Button>
-                      <Button
+                       <Button
                         variant="outline-danger"
                         onClick={() => handleView(studentRecord, index)}
                         className="ml-2"
+                        disabled={!checkedStates[index] ||!studentRecord?.file} 
+                       
                       >
                         <MdAttachFile />
                       </Button>
@@ -380,6 +385,8 @@ export const Selectyear = () => {
   const [checkedStates, setCheckedStates] = useState([]);
   const [printEnabled, setPrintEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [file, setFile]= useState (null)
+  console.log('students',students)
 
   useEffect(() => {
     const getYears = async () => {
@@ -403,9 +410,11 @@ export const Selectyear = () => {
         setLoading(true);
         const response = await axios.get(`${API_BASE_URL}/getYear?year=${selectedYear}`);
         if (response.status === 200) {
+          console.log('response',response)
           setStudents(response.data);
           setCheckedStates(new Array(response.data.length).fill(false));
           setPrintEnabled(false);
+          
         }
       } catch (error) {
         console.error('Error while getting students', error);
@@ -444,6 +453,7 @@ export const Selectyear = () => {
           setCheckedStates={setCheckedStates}
           setPrintEnabled={setPrintEnabled}
           setStudents={setStudents}
+          file={file}
         />
       )}
     </>
