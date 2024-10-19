@@ -83,7 +83,7 @@ const StudentRecords = ({ students, checkedStates, setCheckedStates, setPrintEna
 
       }
     } catch (error) {
-      toast.error("Error while updating studen")
+      toast.error("Error while updating student")
       console.error('Error while updating student', error);
     }
   };
@@ -131,6 +131,7 @@ const StudentRecords = ({ students, checkedStates, setCheckedStates, setPrintEna
       }
     } catch (error) {
       console.error('Error while viewing PDF:', error);
+      toast.error('No PDF Found')
     }
   };
 
