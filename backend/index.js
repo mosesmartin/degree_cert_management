@@ -8,6 +8,7 @@ const deleteStudent = require('./controller/deletestudent');
 const editStudent = require('./controller/editStudent');
 const uploadFile = require('./controller/uploadFile');
 const fileUpload = require('express-fileupload');
+const viewFile = require('./controller/viewStudent');
 
 // Increase the payload size limit (e.g., 50MB)
 app.use(express.json({ limit: '50mb' }));
@@ -30,6 +31,9 @@ app.post('/api/import', filesimport);
 app.get('/api/years', getYears);
 app.get('/api/getYear', getStudents);
 
+// View file route
+app.get('/api/view/:roll_no', viewFile); // Set up the route to view the file
+
 // API endpoint for deleting a student
 app.delete('/api/deleteStudent/:roll_no', deleteStudent);
 
@@ -37,7 +41,7 @@ app.delete('/api/deleteStudent/:roll_no', deleteStudent);
 app.put('/api/updateStudent/:roll_no', editStudent); // Corrected route to include '/api/'
 
 
-app.post('/api/upload', uploadFile); 
+app.post('/api/upload/:roll_no', uploadFile); 
 
 // Define a port for the server
 const PORT = 8000;

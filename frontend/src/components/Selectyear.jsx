@@ -13,7 +13,9 @@ const StudentRecords = ({ students, checkedStates, setCheckedStates, setPrintEna
   const [showEditModal, setShowEditModal] = useState(false);
   const [showOverlayModal, setShowOverlayModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
-
+  const [selectedFile, setSelectedFile] = useState(null); // Add state for selected file
+  const [uploading, setUploading] = useState(false); // State for upload process
+  const [showUploadModal, setShowUploadModal] = useState(false); // Declare showUploadModal state
   const handleSelect = (index) => {
     const newCheckedStates = checkedStates.map((_, i) => i === index);
     setCheckedStates(newCheckedStates);
@@ -85,41 +87,87 @@ const StudentRecords = ({ students, checkedStates, setCheckedStates, setPrintEna
       console.error('Error while updating student', error);
     }
   };
-  const handleUpload = async (studentRecord, index) => {
+  // const handleUpload = async (studentRecord, index) => {
 
-    try {
-      const formData = new FormData();
-      // formData.append("file",file)
-      const response = await axios.post(`${API_BASE_URL}/upload`, formData, { headers: { 'Content-type': 'multipart/form-data' } });
-      if (response.status === 200) {
-        // setStudents(updatedStudents);
-        
-      }
-    } catch (error) {
-      console.error('Error while deleting student', error);
-    }
-  };
+  //   try {
+  //       // Make the GET request to fetch the PDF file
+  //       const response = await axios.get(`${API_BASE_URL}/upload/${studentRecord?.roll_no}`, {
+  //           responseType: 'arraybuffer', // Set response type to 'arraybuffer' to handle binary data
+  //       });
+
+  //       console.log('response', response);
+
+  //       // Check if the response status is 200 (OK)
+  //       if (response.status === 200) {
+  //           // Create a Blob from the PDF data
+  //           const blob = new Blob([response.data], { type: 'application/pdf' });
+  //           const fileURL = URL.createObjectURL(blob); // Create a URL for the Blob
+
+  //           // Open the PDF in a new tab
+  //           window.open(fileURL, '_blank');
+  //       }
+  //   } catch (error) {
+  //       console.error('Error while viewing PDF:', error);
+  //   }
+  // };
+
   const handleView = async (studentRecord, index) => {
-
     try {
-      const response = await axios.get(`${API_BASE_URL}/file/${studentRecord?.roll_no}`);
-      console.log('response',response);
+      // Make the GET request to fetch the PDF file
+      const response = await axios.get(`${API_BASE_URL}/view/${studentRecord?.roll_no}`, {
+        responseType: 'arraybuffer', // Set response type to 'arraybuffer' to handle binary data
+      });
+
+      console.log('response', response);
+
+      // Check if the response status is 200 (OK)
       if (response.status === 200) {
+        // Create a Blob from the PDF data
+        const blob = new Blob([response.data], { type: 'application/pdf' });
+        const fileURL = URL.createObjectURL(blob); // Create a URL for the Blob
 
-        const fileURL = response?.data?.data;
-
-      // Open the PDF in a new tab
-      window.open(fileURL, '_blank');
-
-
-
-        // setStudents(updatedStudents);
-        
+        // Open the PDF in a new tab
+        window.open(fileURL, '_blank');
       }
     } catch (error) {
-      console.error('Error while view pdf', error);
+      console.error('Error while viewing PDF:', error);
     }
   };
+
+  const handleUploadModalOpen = () => setShowUploadModal(true);
+  const handleUploadModalClose = () => setShowUploadModal(false);
+
+  const handleFileChange = (e) => {
+    setSelectedFile(e.target.files[0]);
+  };
+
+  const handleFileUpload = async (studentRecord) => {
+    if (!selectedFile) return;
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    setUploading(true);
+
+    try {
+      const response = await axios.post(`${API_BASE_URL}/upload/${studentRecord?.roll_no}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      if (response.status === 200) {
+        toast.success("File uploaded successfully");
+        handleUploadModalClose();
+        setSelectedFile(null);
+      }
+    } catch (error) {
+      console.error('Error while uploading file:', error);
+      toast.error("Error while uploading file");
+    } finally {
+      setUploading(false);
+    }
+  };
+
 
   return (
     <>
@@ -185,7 +233,10 @@ const StudentRecords = ({ students, checkedStates, setCheckedStates, setPrintEna
                       </Button>
                       <Button
                         variant="outline-danger"
-                        onClick={() => handleUpload(studentRecord, index)}
+                        onClick={() => {
+                          setSelectedStudent(studentRecord); // Set the selected student here
+                          handleUploadModalOpen(); // Open the upload modal
+                        }}
                         className="ml-2"
                       >
                         <FaUpload />
@@ -220,6 +271,30 @@ const StudentRecords = ({ students, checkedStates, setCheckedStates, setPrintEna
               </Button>
               <Button variant="primary" onClick={handlePrint}>
                 Print
+              </Button>
+            </Modal.Footer>
+          </Modal>
+
+          {/* // Upload File Modal */}
+          <Modal show={showUploadModal} onHide={handleUploadModalClose}>
+            <Modal.Header closeButton>
+              <Modal.Title>Upload File</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <Form>
+                <Form.Group controlId="formFileUpload">
+                  <Form.Label>Select File</Form.Label>
+                  <Form.Control type="file" onChange={handleFileChange} />
+                </Form.Group>
+                {uploading && <Spinner animation="border" />}
+              </Form>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onClick={handleUploadModalClose}>
+                Cancel
+              </Button>
+              <Button variant="primary" onClick={() => handleFileUpload(selectedStudent)} disabled={uploading}>
+                Upload
               </Button>
             </Modal.Footer>
           </Modal>
