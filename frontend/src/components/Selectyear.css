@@ -1,3 +1,24 @@
 .text-center {
     text-align: center;
   }
+
+  .selected-year {
+    background-color: #e0f7fa; /* Light blue background for selected year */
+    cursor: pointer;
+  }
+  
+  .selected-year:hover {
+    background-color: #b2ebf2; /* Slightly darker on hover */
+  }
+  
+  tr:hover {
+    background-color: #f1f1f1; /* Light grey on hover for other rows */
+  }
+  
+  tr {
+    cursor: pointer;
+  }
+  
+  .highlighted {
+    background-color: #e0f7fa;
+  }

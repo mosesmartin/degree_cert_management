@@ -50,13 +50,13 @@ const uploadFile = async (req, res) => {
 
                 // Update the database with the relative file path
                 const sql = 'UPDATE studentrecords SET file = ? WHERE roll_no = ?';
-                connection.query(sql, [relativeFilePath, roll_no], (err) => {
+                connection.query(sql, [relativeFilePath, roll_no], (err,results) => {
                     if (err) {
                         console.error('Error updating record in database:', err.message);
                         return res.status(500).json({ error: 'Failed to update file details in database', details: err.message });
                     }
 
-                    res.status(200).json({ message: 'File uploaded and saved successfully', filePath: relativeFilePath });
+                    res.status(200).json({ message: 'File uploaded and saved successfully', filePath: relativeFilePath, data:results[0] });
                 });
             });
         });
