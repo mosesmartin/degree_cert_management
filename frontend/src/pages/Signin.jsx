@@ -48,7 +48,7 @@ export const Signin = () => {
           <div className="col-md-6">
             <div className="formBody">
               <form className="form-signin" onSubmit={handleSubmit}>
-                <h1 className="h3 mb-3 font-weight-normal">Please sign in</h1>
+                <h1 className="h3 mb-3 font-weight-normal">Sign in</h1>
                 <label htmlFor="inputEmail" className="sr-only">
                   Email address
                 </label>
@@ -78,11 +78,11 @@ export const Signin = () => {
                   <div className="alert alert-danger">{errorMessage}</div>
                 )}{" "}
                 {/* Show error message */}
-                <div className="checkbox mb-3">
+                {/* <div className="checkbox mb-3"> [----commented as per the SSPM instructions----]
                   <label>
                     <input type="checkbox" value="remember-me" /> Remember me
                   </label>
-                </div>
+                </div> */}
                 <button
                   className="btn btn-lg btn-primary btn-block"
                   type="submit"

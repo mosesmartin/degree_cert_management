@@ -100,21 +100,51 @@ exports.getYears = async (req, res) => {
 };
 
 exports.getStudents = async (req, res) => {
-  const { year } = req.query;
-  console.log('year', year);
+  const { year, limit = 10, offset = 0, search } = req.query; // Added search to the query params
 
   try {
-    const query = 'SELECT * FROM studentrecords WHERE year = ?';
-    
-    // Use db to execute the query with parameter
-    connection.query(query, [year], (err, results) => {
-      if (err) {
-        console.error("Error fetching years:", err);
-        return res.status(500).json({ error: "Error fetching years" });
-      }
-      console.log('year results', results);
+    if (!year) {
+      return res.status(400).json({ error: "Year is required" });
+    }
 
-      // Send the fetched years back as JSON
+    // Ensure limit and offset are valid integers
+    const parsedLimit = parseInt(limit);
+    const parsedOffset = parseInt(offset);
+
+    if (isNaN(parsedLimit) || isNaN(parsedOffset)) {
+      return res.status(400).json({ error: "Invalid limit or offset values" });
+    }
+
+    // SQL query with LIMIT, OFFSET, and a search filter
+    let query = `
+      SELECT * 
+      FROM studentrecords 
+      WHERE year = ?
+    `;
+    
+    const params = [year];
+
+    // Add search functionality if search term is provided
+    if (search) {
+      query += ` AND (name LIKE ? OR roll_no LIKE ?)`;
+      const searchTerm = `%${search}%`; // Use wildcards for LIKE queries
+      params.push(searchTerm, searchTerm);
+    }
+
+    query += ` LIMIT ? OFFSET ?`; // Add pagination
+    params.push(parsedLimit, parsedOffset); // Push limit and offset to params
+
+    // Use db to execute the query with parameters
+    connection.query(query, params, (err, results) => {
+      if (err) {
+        console.error("Error fetching student records:", err);
+        return res.status(500).json({ error: "Error fetching student records" });
+      }
+
+      console.log(`Fetched ${results.length} student records for year: ${year}`);
+      console.log("Offset:", parsedOffset, "Limit:", parsedLimit);
+
+      // Send the fetched records back as JSON
       return res.status(200).json(results);
     });
     

@@ -22,3 +22,8 @@
   .highlighted {
     background-color: #e0f7fa;
   }
+
+  .scrollable-container {
+    max-height: 500px; /* Adjust height as needed */
+    overflow-y: auto;  /* Enable vertical scrolling */
+  }

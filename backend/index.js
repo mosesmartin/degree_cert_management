@@ -9,6 +9,9 @@ const editStudent = require('./controller/editStudent');
 const uploadFile = require('./controller/uploadFile');
 const fileUpload = require('express-fileupload');
 const viewFile = require('./controller/viewStudent');
+const printcount = require('./controller/printcount');
+const countPasskey = require('./controller/countPasskey');
+const password = require('./controller/password');
 
 // Increase the payload size limit (e.g., 50MB)
 app.use(express.json({ limit: '50mb' }));
@@ -33,6 +36,8 @@ app.get('/api/getYear', getStudents);
 
 // View file route
 app.get('/api/view/:roll_no', viewFile); // Set up the route to view the file
+app.get('/api/student/:roll_no', countPasskey);
+app.post('/api/password', password);
 
 // API endpoint for deleting a student
 app.delete('/api/deleteStudent/:roll_no', deleteStudent);
@@ -42,6 +47,7 @@ app.put('/api/updateStudent/:roll_no', editStudent); // Corrected route to inclu
 
 
 app.post('/api/upload/:roll_no', uploadFile); 
+app.put('/api/increment/:roll_no', printcount);
 
 // Define a port for the server
 const PORT = 8000;

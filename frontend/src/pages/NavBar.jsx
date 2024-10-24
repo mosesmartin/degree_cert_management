@@ -2,11 +2,14 @@ import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import { useNavigate } from 'react-router-dom';
+import { toast } from "react-toastify";
 function NavBar() {
 const navigate = useNavigate()
   const handleLogout = () =>{
     sessionStorage.clear();
     navigate('/')
+    toast.success("Logout succesfully");
+
   }
   return (
     <>

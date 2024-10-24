@@ -10,11 +10,14 @@ import { toast } from 'react-toastify';
 
 export const Importfile = () => {
   const [data, setData] = useState([]);
+  const [uploading, setUploading] = useState(false);
+
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
       parseCSV(file);
+      setUploading(true);
     }
   };
 
@@ -33,8 +36,8 @@ export const Importfile = () => {
     // Send data to the server
     axios.post(`${API_BASE_URL}/import`, data)
       .then(response => {
-        console.log(response.data.message);
-        toast.success("Data imported successfully")
+        // console.log(response.data.message);
+        toast.success(response.data.message)
         // Optionally handle success (e.g., show a success message)
       })
       .catch(error => {
@@ -76,7 +79,9 @@ export const Importfile = () => {
             onChange={handleFileChange} 
           />
         </Form.Group>
-        <Button onClick={handleImportClick} disabled={data.length === 0}>
+        <Button 
+        
+        onClick={handleImportClick} disabled={data.length === 0  }>
           Import Data
         </Button>
       </div>
