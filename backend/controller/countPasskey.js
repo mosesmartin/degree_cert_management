@@ -26,9 +26,9 @@ const countPasskey = (req, res) => {
 
     // Check if the count is greater than or equal to 1
     const currentCount = results[0].count; // Assuming count is in the fetched record
-    if (currentCount >= 1) {
-      return res.status(403).send({ message: "Enter passkey." });
-    }
+    // if (currentCount >= 1) {
+    //   return res.status(403).send({ message: "Enter passkey." });
+    // }
 
     // Send the student record as a response
     return res.status(200).send({ student: results[0] });

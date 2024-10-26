@@ -56,6 +56,36 @@ const StudentRecords = ({
   };
 
   // Handle degree print preview
+  // const handleDegreePrint = async (studentRecord) => {
+  //   try {
+  //     const response = await axios.get(
+  //       `${API_BASE_URL}/student/${studentRecord.roll_no}`
+  //     );
+
+  //     // Check if the response status indicates success
+  //     if (response.status === 200) {
+  //       console.log("response", response);
+  //       const count = response?.data?.student.count;
+  //       setSelectedStudent(studentRecord);
+
+  //       setPasswordModal(count === 0 ? false : true);
+  //       setShowOverlayModal(true);
+  //       setcheckCount(true);
+  //     }
+  //   } catch (error) {
+  //     const message = error?.response?.data?.message || "An error occurred";
+  //     setcheckCount(false);
+  //     setSelectedStudent(studentRecord);
+  //     setPasswordModal(true);
+  //     setShowOverlayModal(true);
+  //     setErrorMessage(error?.response?.data?.message || "An error occured");
+  //     return { status: error.response?.status, message }; // Return status and message
+  //   }
+  // };
+
+  const [showSerialModal, setShowSerialModal] = useState(false)
+  console.log("showSerial modal", showSerialModal)
+  const [serial, setSerial] = useState(null)
   const handleDegreePrint = async (studentRecord) => {
     try {
       const response = await axios.get(
@@ -64,31 +94,57 @@ const StudentRecords = ({
 
       // Check if the response status indicates success
       if (response.status === 200) {
-        console.log("response", response);
-        const count = response?.data?.student.count;
+        console.log("response get student", response);
+        const studentRecord = response?.data?.student;
         setSelectedStudent(studentRecord);
-
-        setPasswordModal(count === 0 ? false : true);
-        setShowOverlayModal(true);
-        setcheckCount(true);
-
-        // return response;
-      } else {
-        // If the status is not 200, return an object indicating the error
-        return { status: response.status, message: response.data.message };
+        setShowSerialModal(true)
+        // setPasswordModal(count === 0 ? false : true);
+        // setShowOverlayModal(true);
+        // setcheckCount(true);
       }
     } catch (error) {
-      console.log("error while fetching meeting data", error);
       const message = error?.response?.data?.message || "An error occurred";
-      setcheckCount(false);
-      setSelectedStudent(studentRecord);
-      setPasswordModal(true);
-      setShowOverlayModal(true);
+      // setcheckCount(false);
+      // setSelectedStudent(studentRecord);
+      // setPasswordModal(true);
+      // setShowOverlayModal(true);
+      setShowSerialModal(true)
+
       setErrorMessage(error?.response?.data?.message || "An error occured");
       return { status: error.response?.status, message }; // Return status and message
     }
+
   };
 
+  const handleSerialKey = async () => {
+    try {
+      const response = await axios.put(
+        `${API_BASE_URL}/serialnum/${selectedStudent.roll_no}`, { serial_num: serial }
+      );
+
+      // Check if the response status indicates success
+      if (response.status === 200) {
+        console.log("response", response);
+        const count = response?.data?.data.count;
+        const studentRecord = response?.data?.data;
+        setSelectedStudent(studentRecord);
+        setPasswordModal(count === 0 ? false : true);
+        setShowOverlayModal(true);
+      }
+    } catch (error) {
+      const message = error?.response?.data?.message || "An error occurred";
+      setPasswordModal(true);
+      setShowOverlayModal(true);
+      setShowSerialModal(true)
+      setErrorMessage(error?.response?.data?.message || "An error occured");
+      return { status: error.response?.status, message }; // Return status and message
+    }
+
+    setSerial("")
+    setShowSerialModal(false)
+
+    // setShowOverlayModal(true)
+  };
   //Check password
   const checkPassword = async () => {
     try {
@@ -175,8 +231,8 @@ const StudentRecords = ({
               </head>
               <body>
                 <img src="${canvas.toDataURL(
-                  "image/png"
-                )}" alt="Degree Image" />
+            "image/png"
+          )}" alt="Degree Image" />
               </body>
             </html>
           `);
@@ -434,6 +490,41 @@ const StudentRecords = ({
 
       <Modal
         size="md"
+        show={showSerialModal}
+        onHide={() => setShowSerialModal(false)}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Enter Serial Number</Modal.Title> {/* Title added here */}
+        </Modal.Header>
+        <Modal.Body>
+          {/* {errorMessage && <div className="error-message">{errorMessage}</div>}{" "} */}
+          <input
+            type="text"
+            value={serial || ""} // Ensure the value is always a string
+            onChange={(e) => setSerial(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleSerialKey();
+              }
+            }}
+            placeholder="Enter serial number" // Optional placeholder
+            className="form-control" // Bootstrap class for styling
+          />
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="primary"
+            onClick={handleSerialKey}
+          >
+            Enter
+          </Button>
+          <Button variant="secondary" onClick={() => setShowSerialModal(false)}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
+      <Modal
+        size="md"
         show={passwordModal}
         onHide={() => setPasswordModal(false)}
       >
@@ -669,10 +760,10 @@ export const Selectyear = () => {
 
         // Add new students to the list
         // setStudents(newStudents);
-        setStudents( newStudents &&
+        setStudents(newStudents &&
           search?.length === 0
-            ? (prevStudents) => [...prevStudents, ...newStudents]
-            : newStudents
+          ? (prevStudents) => [...prevStudents, ...newStudents]
+          : newStudents
         );
 
         // Add checked state for the newly loaded students
@@ -710,7 +801,7 @@ export const Selectyear = () => {
 
   const debounce = (func, delay) => {
     let timeout;
-    return function(...args) {
+    return function (...args) {
       clearTimeout(timeout);
       timeout = setTimeout(() => func.apply(this, args), delay);
     };
@@ -730,8 +821,8 @@ export const Selectyear = () => {
         setOffset((prevOffset) => prevOffset + limit);
       }
     };
-  // Add debounce to the scroll event listener
-  const debouncedHandleScroll = debounce(handleScroll, 200);
+    // Add debounce to the scroll event listener
+    const debouncedHandleScroll = debounce(handleScroll, 200);
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", debouncedHandleScroll);
