@@ -12,6 +12,7 @@ const viewFile = require('./controller/viewStudent');
 const printcount = require('./controller/printcount');
 const countPasskey = require('./controller/countPasskey');
 const password = require('./controller/password');
+const editSerialNum = require('./controller/addSerialNum');
 
 // Increase the payload size limit (e.g., 50MB)
 app.use(express.json({ limit: '50mb' }));
@@ -48,6 +49,7 @@ app.put('/api/updateStudent/:roll_no', editStudent); // Corrected route to inclu
 
 app.post('/api/upload/:roll_no', uploadFile); 
 app.put('/api/increment/:roll_no', printcount);
+app.put('/api/serialnum/:roll_no', editSerialNum);
 
 // Define a port for the server
 const PORT = 8000;
