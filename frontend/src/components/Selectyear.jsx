@@ -46,6 +46,7 @@ const StudentRecords = ({
 
   console.log("errorMessage", errorMessage);
   const [password, setPassword] = useState(null);
+  const [reason, setReason] = useState(null);
   console.log("password", password);
 
   // Select and enable print button
@@ -147,6 +148,17 @@ const StudentRecords = ({
   };
   //Check password
   const checkPassword = async () => {
+  if (!password || !reason) {
+    if (!password && !reason) {
+      toast.error("Password and reason are required");
+    } else if (!password) {
+      toast.error("Password is required");
+    } else if (!reason) {
+      toast.error("Reason is required");
+    }
+    return;
+  }
+  
     try {
       const payload = {
         enteredPassword: password,
@@ -166,6 +178,20 @@ const StudentRecords = ({
       setPassword("");
     }
   };
+  const handleReason = async () => {
+    try {
+      const response = await axios.put(
+        `${API_BASE_URL}/serialnum/${selectedStudent.roll_no}`, { reason: reason }
+      );
+
+      if (response.status === 200) {
+        console.log("response", response);
+      }
+    } catch (error) {
+      console.log('error',error)
+    }
+    setSerial("")
+  }
 
   const handlePrint = async (studentRecord, index) => {
     // Prompt user to confirm before proceeding
@@ -529,28 +555,40 @@ const StudentRecords = ({
         onHide={() => setPasswordModal(false)}
       >
         <Modal.Header closeButton>
-          <Modal.Title>Enter Password</Modal.Title> {/* Title added here */}
+          <Modal.Title>Enter Password & Reason</Modal.Title> {/* Title added here */}
         </Modal.Header>
         <Modal.Body>
           {errorMessage && <div className="error-message">{errorMessage}</div>}{" "}
           {/* Display error message */}
           <input
+            type="text"
+            value={reason || ""}
+            onChange={(e) => setReason(e.target.value)}
+
+            placeholder="Enter reason"
+            className="form-control" // Bootstrap class for styling
+          />
+          <input
             type="password"
-            value={password || ""} // Ensure the value is always a string
+            value={password || ""}
             onChange={(e) => setPassword(e.target.value)}
-            onKeyDown={(e) => {
+            onKeyDown={async (e) => {
               if (e.key === "Enter") {
-                checkPassword(); // Call the checkPassword function on Enter key press
+                await handleReason()
+                await checkPassword();
               }
             }}
-            placeholder="Enter your password" // Optional placeholder
-            className="form-control" // Bootstrap class for styling
+            placeholder="Enter your password"
+            className="form-control  mt-3"
           />
         </Modal.Body>
         <Modal.Footer>
           <Button
             variant="primary"
-            onClick={checkPassword} // Call the checkPassword function on button click
+            onClick={async () => {
+              await handleReason()
+              await checkPassword()
+            }}
           >
             Enter
           </Button>
