@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Route, BrowserRouter, Routes } from 'react-router-dom'
-import { Signin } from './pages/Signin'
+import { Route, HashRouter, Routes, BrowserRouter } from 'react-router-dom'; // Import HashRouter instead of BrowserRouter
+import { Signin } from './pages/Signin';
 import { Mainpage } from './pages/Mainpage';
 import { Importfile } from './components/Importfile';
 import PrivateRoute from './components/PrivateRoute';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
@@ -13,23 +13,16 @@ function App() {
 
   return (
     <>
-      <BrowserRouter>
-
+      <BrowserRouter> {/* Use HashRouter here */}
         <Routes>
-
-
-          <Route exact path='/' element={<Signin/>} />
-          <Route  path='/mainpage' element={<PrivateRoute><Mainpage /></PrivateRoute>} />
+          <Route exact path='/' element={<Signin />} />
+          <Route path='/mainpage' element={<PrivateRoute><Mainpage /></PrivateRoute>} />
           <Route exact path='/importfile' element={<PrivateRoute><Importfile /></PrivateRoute>} />
-
         </Routes>
-
         <ToastContainer />
-
       </BrowserRouter>
     </>
-  )
+  );
 }
 
-export default App
-
+export default App;
