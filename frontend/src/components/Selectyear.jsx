@@ -14,13 +14,13 @@ import { MdAttachFile, MdPrint } from "react-icons/md";
 import { FaTrash, FaEdit, FaUpload, FaStreetView } from "react-icons/fa";
 import DegreeOverlay from "./DegreeOverlay";
 import { toast } from "react-toastify";
-import InfiniteScroll from "react-infinite-scroll-component";
 const StudentRecords = ({
   students,
   checkedStates,
   setCheckedStates,
   setPrintEnabled,
   setStudents,
+  setOriginalStudents,
   setSearch,
   search,
   getStudents,
@@ -56,37 +56,10 @@ const StudentRecords = ({
     setPrintEnabled(newCheckedStates.some((state) => state));
   };
 
-  // Handle degree print preview
-  // const handleDegreePrint = async (studentRecord) => {
-  //   try {
-  //     const response = await axios.get(
-  //       `${API_BASE_URL}/student/${studentRecord.roll_no}`
-  //     );
 
-  //     // Check if the response status indicates success
-  //     if (response.status === 200) {
-  //       console.log("response", response);
-  //       const count = response?.data?.student.count;
-  //       setSelectedStudent(studentRecord);
-
-  //       setPasswordModal(count === 0 ? false : true);
-  //       setShowOverlayModal(true);
-  //       setcheckCount(true);
-  //     }
-  //   } catch (error) {
-  //     const message = error?.response?.data?.message || "An error occurred";
-  //     setcheckCount(false);
-  //     setSelectedStudent(studentRecord);
-  //     setPasswordModal(true);
-  //     setShowOverlayModal(true);
-  //     setErrorMessage(error?.response?.data?.message || "An error occured");
-  //     return { status: error.response?.status, message }; // Return status and message
-  //   }
-  // };
-
-  const [showSerialModal, setShowSerialModal] = useState(false)
-  console.log("showSerial modal", showSerialModal)
-  const [serial, setSerial] = useState(null)
+  const [showSerialModal, setShowSerialModal] = useState(false);
+  console.log("showSerial modal", showSerialModal);
+  const [serial, setSerial] = useState(null);
   const handleDegreePrint = async (studentRecord) => {
     try {
       const response = await axios.get(
@@ -98,7 +71,7 @@ const StudentRecords = ({
         console.log("response get student", response);
         const studentRecord = response?.data?.student;
         setSelectedStudent(studentRecord);
-        setShowSerialModal(true)
+        setShowSerialModal(true);
         // setPasswordModal(count === 0 ? false : true);
         // setShowOverlayModal(true);
         // setcheckCount(true);
@@ -109,18 +82,18 @@ const StudentRecords = ({
       // setSelectedStudent(studentRecord);
       // setPasswordModal(true);
       // setShowOverlayModal(true);
-      setShowSerialModal(true)
+      setShowSerialModal(true);
 
       setErrorMessage(error?.response?.data?.message || "An error occured");
       return { status: error.response?.status, message }; // Return status and message
     }
-
   };
 
   const handleSerialKey = async () => {
     try {
       const response = await axios.put(
-        `${API_BASE_URL}/serialnum/${selectedStudent.roll_no}`, { serial_num: serial }
+        `${API_BASE_URL}/serialnum/${selectedStudent.roll_no}`,
+        { serial_num: serial }
       );
 
       // Check if the response status indicates success
@@ -129,36 +102,38 @@ const StudentRecords = ({
         const count = response?.data?.data.count;
         const studentRecord = response?.data?.data;
         setSelectedStudent(studentRecord);
-        setPasswordModal(count === 0 ? false : true);
+        // setPasswordModal(count === 0 ? false : true);
+        setPasswordModal(count !== 0);
+        setcheckCount(count === 0);
         setShowOverlayModal(true);
       }
     } catch (error) {
       const message = error?.response?.data?.message || "An error occurred";
       setPasswordModal(true);
       setShowOverlayModal(true);
-      setShowSerialModal(true)
+      setShowSerialModal(true);
       setErrorMessage(error?.response?.data?.message || "An error occured");
       return { status: error.response?.status, message }; // Return status and message
     }
 
-    setSerial("")
-    setShowSerialModal(false)
+    setSerial("");
+    setShowSerialModal(false);
 
     // setShowOverlayModal(true)
   };
   //Check password
   const checkPassword = async () => {
-  if (!password || !reason) {
-    if (!password && !reason) {
-      toast.error("Password and reason are required");
-    } else if (!password) {
-      toast.error("Password is required");
-    } else if (!reason) {
-      toast.error("Reason is required");
+    if (!password || !reason) {
+      if (!password && !reason) {
+        toast.error("Password and reason are required");
+      } else if (!password) {
+        toast.error("Password is required");
+      } else if (!reason) {
+        toast.error("Reason is required");
+      }
+      return;
     }
-    return;
-  }
-  
+
     try {
       const payload = {
         enteredPassword: password,
@@ -181,17 +156,18 @@ const StudentRecords = ({
   const handleReason = async () => {
     try {
       const response = await axios.put(
-        `${API_BASE_URL}/serialnum/${selectedStudent.roll_no}`, { reason: reason }
+        `${API_BASE_URL}/serialnum/${selectedStudent.roll_no}`,
+        { reason: reason }
       );
 
       if (response.status === 200) {
         console.log("response", response);
       }
     } catch (error) {
-      console.log('error',error)
+      console.log("error", error);
     }
-    setSerial("")
-  }
+    setReason("");
+  };
 
   const handlePrint = async (studentRecord, index) => {
     // Prompt user to confirm before proceeding
@@ -257,8 +233,8 @@ const StudentRecords = ({
               </head>
               <body>
                 <img src="${canvas.toDataURL(
-            "image/png"
-          )}" alt="Degree Image" />
+                  "image/png"
+                )}" alt="Degree Image" />
               </body>
             </html>
           `);
@@ -268,6 +244,11 @@ const StudentRecords = ({
           printWindow.focus();
           printWindow.print();
           // printWindow.close();
+
+           // After printing is complete, show the upload modal
+        setSelectedStudent(studentRecord); // remember the current student record
+        setShowUploadModal(true); // Open the upload modal
+
         } else {
           toast.error("Error fetching print data from API.");
         }
@@ -367,6 +348,7 @@ const StudentRecords = ({
         {
           headers: { "Content-Type": "multipart/form-data" },
         }
+        
       );
       if (response.status === 200) {
         // Find and update the student record in the state to reflect the uploaded file
@@ -404,6 +386,7 @@ const StudentRecords = ({
           <Table striped bordered hover>
             <thead>
               <tr>
+                <th>NO.</th>
                 <th>Select</th>
                 <th>Year</th>
                 <th>Name</th>
@@ -418,6 +401,8 @@ const StudentRecords = ({
             <tbody>
               {students.map((studentRecord, index) => (
                 <tr key={`${studentRecord.roll_no}-${index}`}>
+                  <td>{index+1}</td>
+
                   <td>
                     <Form.Check
                       checked={checkedStates[index]}
@@ -454,7 +439,8 @@ const StudentRecords = ({
                     </Button>
                     <Button
                       variant="outline-danger"
-                      disabled={!checkedStates[index]}
+                      // disabled={!checkedStates[index] ||  studentRecord.count >= 1}
+                      disabled={!checkedStates[index] }
                       onClick={() => handleUploadModalOpen(studentRecord)}
                     >
                       <FaUpload />
@@ -520,7 +506,8 @@ const StudentRecords = ({
         onHide={() => setShowSerialModal(false)}
       >
         <Modal.Header closeButton>
-          <Modal.Title>Enter Serial Number</Modal.Title> {/* Title added here */}
+          <Modal.Title>Enter Serial Number</Modal.Title>{" "}
+          {/* Title added here */}
         </Modal.Header>
         <Modal.Body>
           {/* {errorMessage && <div className="error-message">{errorMessage}</div>}{" "} */}
@@ -538,10 +525,7 @@ const StudentRecords = ({
           />
         </Modal.Body>
         <Modal.Footer>
-          <Button
-            variant="primary"
-            onClick={handleSerialKey}
-          >
+          <Button variant="primary" onClick={handleSerialKey}>
             Enter
           </Button>
           <Button variant="secondary" onClick={() => setShowSerialModal(false)}>
@@ -549,13 +533,17 @@ const StudentRecords = ({
           </Button>
         </Modal.Footer>
       </Modal>
+
+      {/* // pasword and reason modal */}
+
       <Modal
         size="md"
         show={passwordModal}
         onHide={() => setPasswordModal(false)}
       >
         <Modal.Header closeButton>
-          <Modal.Title>Enter Password & Reason</Modal.Title> {/* Title added here */}
+          <Modal.Title>Enter Password & Reason</Modal.Title>{" "}
+          {/* Title added here */}
         </Modal.Header>
         <Modal.Body>
           {errorMessage && <div className="error-message">{errorMessage}</div>}{" "}
@@ -564,7 +552,6 @@ const StudentRecords = ({
             type="text"
             value={reason || ""}
             onChange={(e) => setReason(e.target.value)}
-
             placeholder="Enter reason"
             className="form-control" // Bootstrap class for styling
           />
@@ -574,7 +561,7 @@ const StudentRecords = ({
             onChange={(e) => setPassword(e.target.value)}
             onKeyDown={async (e) => {
               if (e.key === "Enter") {
-                await handleReason()
+                await handleReason();
                 await checkPassword();
               }
             }}
@@ -586,8 +573,8 @@ const StudentRecords = ({
           <Button
             variant="primary"
             onClick={async () => {
-              await handleReason()
-              await checkPassword()
+              await handleReason();
+              await checkPassword();
             }}
           >
             Enter
@@ -601,35 +588,46 @@ const StudentRecords = ({
       {/* Error Message Modal END*/}
 
       {/* Upload File Modal */}
-      <Modal show={showUploadModal} onHide={() => setShowUploadModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Upload File</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Group controlId="formFileUpload">
-              <Form.Label>Select File</Form.Label>
-              <Form.Control
-                type="file"
-                onChange={(e) => setSelectedFile(e.target.files[0])}
-              />
-            </Form.Group>
-            {uploading && <Spinner animation="border" />}
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowUploadModal(false)}>
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            onClick={handleFileUpload}
-            disabled={uploading}
-          >
-            Upload
-          </Button>
-        </Modal.Footer>
-      </Modal>
+    <Modal 
+  show={showUploadModal} 
+  onHide={() => setUploading(false)} // Optional, based on how you want to handle cancellation
+>
+  <Modal.Header>
+    <Modal.Title>Upload File</Modal.Title>
+  </Modal.Header>
+  <Modal.Body>
+    <Form>
+      <Form.Group controlId="formFileUpload">
+        <Form.Label>Select File</Form.Label>
+        <Form.Control
+          type="file"
+          onChange={(e) => setSelectedFile(e.target.files[0])}
+        />
+      </Form.Group>
+      {uploading && <Spinner animation="border" />}
+    </Form>
+  </Modal.Body>
+  <Modal.Footer>
+    <Button 
+      variant="secondary" 
+      onClick={() => {
+        setSelectedFile(null); // Clear selected file when cancelling
+        setShowUploadModal(false);
+      }}
+      disabled={uploading} // Disable if uploading
+    >
+      Cancel
+    </Button>
+    <Button 
+      variant="primary" 
+      onClick={handleFileUpload} 
+      disabled={uploading || !selectedFile} // Disable if uploading or no file selected
+    >
+      Upload
+    </Button>
+  </Modal.Footer>
+</Modal>
+
 
       {/* Edit Student Modal */}
 
@@ -737,7 +735,9 @@ export const Selectyear = () => {
   const [years, setYears] = useState([]);
   const [selectedYear, setSelectedYear] = useState(null);
   const [students, setStudents] = useState([]);
+  const [originalStudents, setOriginalStudents] = useState([]); // Holds the unfiltered list of students
   console.log("students", students);
+  console.log("originalStudents", originalStudents);
 
   const [checkedStates, setCheckedStates] = useState([]);
   const [printEnabled, setPrintEnabled] = useState(false);
@@ -751,16 +751,20 @@ export const Selectyear = () => {
   const [entered, setEntered] = useState(false);
   console.log("entered", entered);
 
-  const handleInputChange = async (e) => {
+  const handleInputChange = (e) => {
     setSearch(e.target.value);
   };
+  // Monitor search state to reset students when search is cleared
+  useEffect(() => {
+    if (search.trim() === "") {
+      setStudents(originalStudents); // Restore to full list
+    }
+  }, [search, originalStudents]);
+
   const handleKeyDown = async (e) => {
     if (e.key === "Enter") {
-      setEntered(true);
       e.preventDefault();
-      // e.stopPropagation();
-      // setOffset(0); // Reset offset for new search
-      await getStudents(); // Call the getStudents function
+      await getStudents();
     }
   };
   const loaderRef = useRef(null);
@@ -787,7 +791,12 @@ export const Selectyear = () => {
       console.log(`Fetching students with limit: ${limit}, offset: ${offset}`);
 
       const response = await axios.get(`${API_BASE_URL}/getYear`, {
-        params: { year: selectedYear, limit, offset, search },
+        params: {
+          year: selectedYear,
+          offset,
+          limit: search?.length > 0 ? 1 : limit,
+          search: search || "",
+        },
       });
       if (response.status === 200) {
         const newStudents = response.data;
@@ -798,10 +807,19 @@ export const Selectyear = () => {
 
         // Add new students to the list
         // setStudents(newStudents);
-        setStudents(newStudents &&
-          search?.length === 0
-          ? (prevStudents) => [...prevStudents, ...newStudents]
-          : newStudents
+        //  Set original students if search is empty and original list is not yet set
+        if (search?.trim() === "" && originalStudents.length === 0) {
+          setOriginalStudents(newStudents); // Store the full list
+        }
+
+        // // Update the students list
+        // setStudents(
+        //   search?.trim() === "" ? originalStudents : newStudents
+        // );
+        setStudents(
+          newStudents && search?.length === 0
+            ? (prevStudents) => [...prevStudents, ...newStudents]
+            : newStudents
         );
 
         // Add checked state for the newly loaded students
@@ -817,7 +835,6 @@ export const Selectyear = () => {
     }
   };
 
-
   useEffect(() => {
     if (!selectedYear) return;
     if (search) {
@@ -825,7 +842,7 @@ export const Selectyear = () => {
     }
 
     getStudents();
-  }, [selectedYear, offset, limit, entered, search]);
+  }, [selectedYear, offset, limit, entered]);
 
   // useEffect(() => {
   //   if (search) {
@@ -835,7 +852,6 @@ export const Selectyear = () => {
   //     setHasMore(true);
   //   }
   // }, [entered]);
-
 
   const debounce = (func, delay) => {
     let timeout;
@@ -866,11 +882,21 @@ export const Selectyear = () => {
     return () => window.removeEventListener("scroll", debouncedHandleScroll);
   }, [loading, hasMore, limit]);
 
+  // const handleYearSelection = (year) => {
+  //   setSelectedYear(year);
+  //   // setStudents([]);
+  //   setOriginalStudents([])
+  //   setOffset(0);
+  //   setHasMore(true);
+  // };
   const handleYearSelection = (year) => {
-    setSelectedYear(year);
-    setStudents([]);
-    setOffset(0);
-    setHasMore(true);
+    if (selectedYear !== year) {
+      setSelectedYear(year); // Update the selected year if it's not already selected
+      // setStudents([]);
+      setOriginalStudents([]);
+      setOffset(0);
+      setHasMore(true);
+    }
   };
 
   return (
@@ -884,7 +910,10 @@ export const Selectyear = () => {
               <tr
                 key={item.year}
                 onClick={() => handleYearSelection(item.year)}
-                style={{ cursor: "pointer" }}
+                style={{
+                  cursor: selectedYear === item.year ? "pointer" : "pointer",
+                  backgroundColor: selectedYear === item.year ? "#f0f0f0" : "transparent",
+                }}
               >
                 <td className="text-center">{item.year}</td>
               </tr>
@@ -918,6 +947,7 @@ export const Selectyear = () => {
               setCheckedStates={setCheckedStates}
               setPrintEnabled={setPrintEnabled}
               setStudents={setStudents}
+              setOriginalStudents={setOriginalStudents}
               hasMore={hasMore}
               setOffset={setOffset}
               offset={offset}

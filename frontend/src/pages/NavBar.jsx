@@ -16,7 +16,7 @@ const navigate = useNavigate()
       
       <Navbar bg="primary" data-bs-theme="dark">
         <Container>
-          <Navbar.Brand href="#home">FORMAN CHRISTIAN COLLEGE</Navbar.Brand>
+          <Navbar.Brand style={{ cursor: 'pointer' }}>FORMAN CHRISTIAN COLLEGE</Navbar.Brand>
           <Nav className="me-auto">
             <Nav.Link href="/mainpage">Home</Nav.Link>
             <Nav.Link href="/importfile">Import Students</Nav.Link>

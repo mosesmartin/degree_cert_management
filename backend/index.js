@@ -24,7 +24,6 @@ app.use(fileUpload({
 }));
 // Middleware for parsing JSON and URL-encoded data
 app.use(express.json()); // Built-in middleware for parsing JSON
-// app.use(express.urlencoded({ extended: true })); // Built-in middleware for parsing URL-encoded data
 app.use(cors());
 
 // API endpoint for user sign-in

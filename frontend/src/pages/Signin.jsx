@@ -22,23 +22,24 @@ export const Signin = () => {
       const response = await axios.post(`${API_BASE_URL}/signin`, payload);
       console.log("response", response);
       if (response.status === 200) {
-        // alert("Login successful");
         const user = response?.data?.user;
         const token = response?.data?.token;
         sessionStorage.setItem("user", JSON.stringify(user));
         sessionStorage.setItem("token", token);
         navigate("/mainpage"); // Redirect to the main page after successful login
-        toast.success(response?.data?.message)
+        toast.success(response?.data?.message);
       }
     } catch (error) {
       console.log("error", error);
-      // setErrorMessage("Login failed. Please check your credentials."); // Set error message
-      toast.error(error?.response?.data?.message)
+      toast.error(error?.response?.data?.message);
     }
   };
 
   return (
     <>
+      <div className="container" style={{ height: "140px", display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <h1>Degree Management System</h1>
+      </div>
       <div className="container">
         <div className="row" style={{ marginTop: "100px" }}>
           <div className="col-md-6">
@@ -76,20 +77,13 @@ export const Signin = () => {
                 />
                 {errorMessage && (
                   <div className="alert alert-danger">{errorMessage}</div>
-                )}{" "}
-                {/* Show error message */}
-                {/* <div className="checkbox mb-3"> [----commented as per the SSPM instructions----]
-                  <label>
-                    <input type="checkbox" value="remember-me" /> Remember me
-                  </label>
-                </div> */}
+                )} 
                 <button
                   className="btn btn-lg btn-primary btn-block"
                   type="submit"
                 >
                   Sign in
                 </button>
-                
               </form>
             </div>
           </div>
@@ -98,13 +92,12 @@ export const Signin = () => {
 
       <div className="container">
         <div className="row">
-        <p className="mt-5 mb-0 text-muted">
-                  &copy; {date.getFullYear()}
-                </p>
-                <p className="mb-3 text-muted">
-                  - Information Technology Services
-                </p>
-
+          <p className="mt-5 mb-0 text-muted">
+            &copy; {date.getFullYear()}
+          </p>
+          <p className="mb-3 text-muted">
+            - Information Technology Services
+          </p>
         </div>
       </div>
     </>
