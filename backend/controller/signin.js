@@ -1,43 +1,7 @@
-// const connection = require('../connection'); // Adjust the path as necessary
-// const bcrypt = require('bcrypt');
-
-// // Function to handle sign-in
-// exports.signIn =  (req, res) => {
-//   const { email, password } = req.body;
-//     if(!email || !password){
-//         console.log('undefined')
-//     }
-//   // Query the database for the user
-//   const sql = 'SELECT * FROM users WHERE email = ?';
-//   connection.query(sql, [email], (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ error: err.message });
-//     }
-//     if (results.length > 0) {
-//       const user = results[0];
-//       // Compare the hashed password with the provided password
-//       bcrypt.compare(password, user.password, (err, match) => {
-//         if (err) {
-//           return res.status(500).json({ error: err.message });
-
-//         }
-//         if (match) {
-//           return res.status(200).json({ message: 'Sign in successful!' });
-//         } else {
-//           return res.status(401).json({ message: 'Invalid credentials' });
-//         }
-//       });
-//     } else {
-//       return res.status(404).json({ message: 'User not found' });
-//     }
-//   });
-// };
-
-
 
 const connection = require('../database/connection');
-const jwt = require('jsonwebtoken'); // JWT for session management (optional)
-const crypto = require('crypto')
+const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 // Function to handle sign-in
 exports.signIn = async (req, res) => {
@@ -62,14 +26,50 @@ exports.signIn = async (req, res) => {
     const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
 
     if (hashedPassword === user.password) {
-      // Generate a JWT token
-      const token = jwt.sign({ id: user.id, email: user.email }, 'FCC_DMS_@_2024', { expiresIn: '1h' });
+      // Generate a JWT token with user role included
+      const token = jwt.sign(
+        { id: user.id, email: user.email, role: user.user_role },
+        'FCC_DMS_@_2024',
+        { expiresIn: '1h' }
+      );
 
-      return res.status(200).json({ message: 'Sign in successful!', user: user, token: token });
+      return res.status(200).json({
+        message: 'Sign in successful!',
+        user: { id: user.id, email: user.email, role: user.user_role },
+        token: token,
+      });
     } else {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+
+};
+
+
+
+// Function to handle adding a new user
+exports.addUser = async (req, res) => {
+  const { email, password, user_role } = req.body;
+
+  if (!email || !password || !user_role) {
+    return res.status(400).json({ message: 'Email, password, and user role are required' });
+  }
+
+  try {
+    // Hash the password using SHA-256
+    const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+
+    // SQL query to insert a new user
+    const sql = 'INSERT INTO users (email, password, user_role) VALUES (?, ?, ?)';
+    const values = [email, hashedPassword, user_role];
+
+    // Execute the SQL query
+    const [result] = await connection.promise().query(sql, values);
+
+    return res.status(201).json({ message: 'User added successfully', userId: result.insertId });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -141,6 +141,59 @@ exports.getStudents = async (req, res) => {
       }
 
       console.log(`Fetched ${results.length} student records for year: ${year}`);
+      console.log("Offset:", parsedOffset, "Limit:", parsedLimit);
+
+      return res.status(200).json(results);
+    });
+    
+  } catch (error) {
+    console.error("Server Error:", error);
+    return res.status(500).json({ error: "Server error" });
+  }
+};
+
+exports.getStudentProgram = async (req, res) => {
+  const { program, limit = 10, offset = 0, search } = req.query;
+
+  try {
+    if (!program) {
+      return res.status(400).json({ error: "program is required" });
+    }
+
+    const parsedLimit = parseInt(limit);
+    const parsedOffset = parseInt(offset);
+
+    if (isNaN(parsedLimit) || isNaN(parsedOffset)) {
+      return res.status(400).json({ error: "Invalid limit or offset values" });
+    }
+
+    let query = `
+      SELECT * 
+      FROM studentrecords 
+      WHERE program = ?
+    `;
+    
+    const params = [program];
+
+    if (search) {
+      query += ` AND (name LIKE ? OR roll_no LIKE ?)`;
+      const searchTerm = `%${search}%`;
+      params.push(searchTerm, searchTerm);
+      console.log("Search term:", searchTerm);
+    }
+
+    query += ` LIMIT ? OFFSET ?`;
+    params.push(parsedLimit, parsedOffset);
+    
+    console.log("Executing query:", query, params);
+
+    connection.query(query, params, (err, results) => {
+      if (err) {
+        console.error("Error fetching student records:", err);
+        return res.status(500).json({ error: "Error fetching student records" });
+      }
+
+      console.log(`Fetched ${results.length} student records for program: ${program}`);
       console.log("Offset:", parsedOffset, "Limit:", parsedLimit);
 
       return res.status(200).json(results);

@@ -14,6 +14,10 @@ import { MdAttachFile, MdPrint } from "react-icons/md";
 import { FaTrash, FaEdit, FaUpload, FaStreetView } from "react-icons/fa";
 import DegreeOverlay from "./DegreeOverlay";
 import { toast } from "react-toastify";
+import debounce from "lodash/debounce";
+import path from 'path';
+
+
 const StudentRecords = ({
   students,
   checkedStates,
@@ -26,6 +30,7 @@ const StudentRecords = ({
   getStudents,
   entered,
   setEntered,
+  selectedProgram,
 }) => {
   const [editingStudent, setEditingStudent] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -43,11 +48,20 @@ const StudentRecords = ({
   const [passwordModal, setPasswordModal] = useState(false);
 
   const [isButtonVisible, setIsButtonVisible] = useState(true);
+  const [isUploaded, setIsUploaded] = useState(false);
 
   console.log("errorMessage", errorMessage);
   const [password, setPassword] = useState(null);
   const [reason, setReason] = useState(null);
   console.log("password", password);
+
+  const [userRole, setUserRole] = useState(null);
+
+  useEffect(() => {
+    // Retrieve the user role from session storage
+    const role = sessionStorage.getItem('user_role');
+    setUserRole(role);
+  }, []);
 
   // Select and enable print button
   const handleSelect = (index) => {
@@ -56,8 +70,8 @@ const StudentRecords = ({
     setPrintEnabled(newCheckedStates.some((state) => state));
   };
 
-
   const [showSerialModal, setShowSerialModal] = useState(false);
+  const [showDegreeView, setshowDegreeView] = useState(false);
   console.log("showSerial modal", showSerialModal);
   const [serial, setSerial] = useState(null);
   const handleDegreePrint = async (studentRecord) => {
@@ -245,10 +259,9 @@ const StudentRecords = ({
           printWindow.print();
           // printWindow.close();
 
-           // After printing is complete, show the upload modal
-        setSelectedStudent(studentRecord); // remember the current student record
-        setShowUploadModal(true); // Open the upload modal
-
+          // After printing is complete, show the upload modal
+          setSelectedStudent(studentRecord); // remember the current student record
+          setShowUploadModal(true); // Open the upload modal
         } else {
           toast.error("Error fetching print data from API.");
         }
@@ -311,34 +324,49 @@ const StudentRecords = ({
       setEditLoading(false);
     }
   };
-
+  const [filePaths,setFilePaths] = useState([])
+  console.log('filePaths' ,filePaths )
   const handleView = async (studentRecord) => {
     try {
       const response = await axios.get(
-        `${API_BASE_URL}/view/${studentRecord.roll_no}`,
-        {
-          responseType: "arraybuffer",
-        }
+        `${API_BASE_URL}/view/${studentRecord.roll_no}`
       );
-      if (response.status === 200) {
-        const blob = new Blob([response.data], { type: "application/pdf" });
-        const fileURL = URL.createObjectURL(blob);
-        window.open(fileURL, "_blank");
+      if (response.status === 200 && response.data.success) {
+        // Set filePaths and show modal
+        setFilePaths(response.data.filePaths);
+        setshowDegreeView(true);
       }
     } catch (error) {
       console.error("Error while viewing PDF:", error);
     }
   };
+  
+  const handleViewFile = (filePath) => {
+    const fileUrl = `http://10.15.17.17:8000${filePath}`
+    console.log("Opening file:", fileUrl); // Debugging line
+    window.open(fileUrl, "_blank"); // Open in a new tab
+};
 
   const handleUploadModalOpen = (studentRecord) => {
+    console.log("studentRecord", studentRecord);
+    console.log(
+      "clicked on upload button",
+      studentRecord?.serial_num?.[studentRecord.serial_num.length - 1]
+    );
     setSelectedStudent(studentRecord);
     setShowUploadModal(true);
   };
 
   const handleFileUpload = async () => {
     if (!selectedFile) return;
+    console.log("setSelectedStudent", selectedStudent);
+    const lastSerialNum =
+      selectedStudent?.serial_num?.[selectedStudent.serial_num.length - 1] ||
+      "";
+
     const formData = new FormData();
     formData.append("file", selectedFile);
+    formData.append("serial_num", lastSerialNum || "");
 
     setUploading(true);
     try {
@@ -348,9 +376,9 @@ const StudentRecords = ({
         {
           headers: { "Content-Type": "multipart/form-data" },
         }
-        
       );
       if (response.status === 200) {
+        setIsUploaded(true);
         // Find and update the student record in the state to reflect the uploaded file
         setStudents((prevStudents) =>
           prevStudents.map((student) =>
@@ -392,6 +420,7 @@ const StudentRecords = ({
                 <th>Name</th>
                 <th>Roll No</th>
                 <th>Major</th>
+                <th>program</th>
                 <th>Graduation Year</th>
                 <th>Print Count</th>
                 <th>Actions</th>
@@ -401,7 +430,7 @@ const StudentRecords = ({
             <tbody>
               {students.map((studentRecord, index) => (
                 <tr key={`${studentRecord.roll_no}-${index}`}>
-                  <td>{index+1}</td>
+                  <td>{index + 1}</td>
 
                   <td>
                     <Form.Check
@@ -413,6 +442,7 @@ const StudentRecords = ({
                   <td>{studentRecord.name}</td>
                   <td>{studentRecord.roll_no}</td>
                   <td>{studentRecord.major}</td>
+                  <td>{studentRecord.program}</td>
                   <td>{studentRecord.graduation_year}</td>
                   <td>{studentRecord.count}</td>
                   <td>
@@ -423,24 +453,26 @@ const StudentRecords = ({
                     >
                       <MdPrint />
                     </Button>
-                    <Button
+                    {userRole === 'admin' && (<Button
                       variant="outline-warning"
                       disabled={!checkedStates[index]}
                       onClick={() => handleEdit(studentRecord)}
                     >
                       <FaEdit />
-                    </Button>
-                    <Button
+                    </Button>)}
+                    {userRole === 'admin' &&(<Button
                       variant="outline-danger"
                       disabled={!checkedStates[index]}
                       onClick={() => handleDelete(studentRecord, index)}
                     >
                       <FaTrash />
-                    </Button>
+                    </Button>)}
                     <Button
                       variant="outline-danger"
-                      // disabled={!checkedStates[index] ||  studentRecord.count >= 1}
-                      disabled={!checkedStates[index] }
+                      disabled={
+                        !checkedStates[index] || studentRecord.count === 0
+                      }
+                      // disabled={!checkedStates[index]}
                       onClick={() => handleUploadModalOpen(studentRecord)}
                     >
                       <FaUpload />
@@ -449,6 +481,7 @@ const StudentRecords = ({
                       variant="outline-danger"
                       disabled={!checkedStates[index] || !studentRecord?.file}
                       onClick={() => handleView(studentRecord)}
+                      // onClick={() => setshowDegreeView(true)}
                     >
                       <MdAttachFile />
                     </Button>
@@ -476,6 +509,7 @@ const StudentRecords = ({
               studentRecord={selectedStudent}
               canvasWidth={700}
               canvasHeight={800}
+              program={selectedProgram}
             />
           )}
         </Modal.Body>
@@ -500,6 +534,38 @@ const StudentRecords = ({
         </Modal.Footer>
       </Modal>
 
+      {/* view degrees modal */}
+      <Modal size="lg" show={showDegreeView} onHide={() => setshowDegreeView(false)}>
+  <Modal.Header closeButton>
+    <Modal.Title>Select Degree</Modal.Title>
+  </Modal.Header>
+  <Modal.Body>
+    <div>
+      {filePaths?.map((item, index) => {
+        const fileName = item.split('\\').pop(); // Extract file name from path
+        const trimmedFileName = fileName.replace('/uploads/', ''); // Trim '/uploads/' if present
+
+        return (
+          <div 
+            key={index} 
+            onClick={() => handleViewFile(item)}  // Keep the full path for clicking
+            style={{ cursor: 'pointer', color: 'blue', margin: '5px 0' }} // Added margin for spacing
+          >
+            {trimmedFileName} {/* Display only the file name */}
+          </div>
+        );
+      })}
+    </div>
+  </Modal.Body>
+  <Modal.Footer>
+    <Button variant="secondary" onClick={() => setshowDegreeView(false)}>Close</Button>
+  </Modal.Footer>
+</Modal>
+
+
+
+
+      {/* serial key modal */}
       <Modal
         size="md"
         show={showSerialModal}
@@ -528,7 +594,13 @@ const StudentRecords = ({
           <Button variant="primary" onClick={handleSerialKey}>
             Enter
           </Button>
-          <Button variant="secondary" onClick={() => setShowSerialModal(false)}>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setSerial("");
+              setShowSerialModal(false);
+            }}
+          >
             Close
           </Button>
         </Modal.Footer>
@@ -588,46 +660,48 @@ const StudentRecords = ({
       {/* Error Message Modal END*/}
 
       {/* Upload File Modal */}
-    <Modal 
-  show={showUploadModal} 
-  onHide={() => setUploading(false)} // Optional, based on how you want to handle cancellation
->
-  <Modal.Header>
-    <Modal.Title>Upload File</Modal.Title>
-  </Modal.Header>
-  <Modal.Body>
-    <Form>
-      <Form.Group controlId="formFileUpload">
-        <Form.Label>Select File</Form.Label>
-        <Form.Control
-          type="file"
-          onChange={(e) => setSelectedFile(e.target.files[0])}
-        />
-      </Form.Group>
-      {uploading && <Spinner animation="border" />}
-    </Form>
-  </Modal.Body>
-  <Modal.Footer>
-    <Button 
-      variant="secondary" 
-      onClick={() => {
-        setSelectedFile(null); // Clear selected file when cancelling
-        setShowUploadModal(false);
-      }}
-      disabled={uploading} // Disable if uploading
-    >
-      Cancel
-    </Button>
-    <Button 
-      variant="primary" 
-      onClick={handleFileUpload} 
-      disabled={uploading || !selectedFile} // Disable if uploading or no file selected
-    >
-      Upload
-    </Button>
-  </Modal.Footer>
-</Modal>
-
+      <Modal
+        show={showUploadModal}
+        onHide={() => {
+          if (!isUploaded) return setUploading(false);
+        }} // Optional, based on how you want to handle cancellation
+      >
+        <Modal.Header>
+          <Modal.Title>Upload File</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group controlId="formFileUpload">
+              <Form.Label>Select File</Form.Label>
+              <Form.Control
+                type="file"
+                onChange={(e) => setSelectedFile(e.target.files[0])}
+              />
+            </Form.Group>
+            {uploading && <Spinner animation="border" />}
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              if (!isUploaded) return;
+              setSelectedFile(null); // Clear selected file when cancelling
+              setShowUploadModal(false);
+            }}
+            disabled={uploading} // Disable if uploading
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleFileUpload}
+            disabled={uploading || !selectedFile} // Disable if uploading or no file selected
+          >
+            Upload
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       {/* Edit Student Modal */}
 
@@ -750,16 +824,29 @@ export const Selectyear = () => {
   const [search, setSearch] = useState(""); // Track the search input
   const [entered, setEntered] = useState(false);
   console.log("entered", entered);
+  // Debounced function to fetch students
+  const fetchStudentsDebounced = useCallback(
+    debounce(() => {
+      getStudents();
+    }, 300),
+    []
+    // [search, limit, offset]
+  );
 
+  // Handle input change and trigger debounced fetch
   const handleInputChange = (e) => {
-    setSearch(e.target.value);
-  };
-  // Monitor search state to reset students when search is cleared
-  useEffect(() => {
-    if (search.trim() === "") {
-      setStudents(originalStudents); // Restore to full list
+    const newSearch = e.target.value;
+    setSearch(newSearch); // Update search immediately // Update search immediately
+    setOffset(0);
+    // fetchStudentsDebounced(); // Trigger debounced function
+    if (newSearch.trim()) {
+      // Trigger debounced fetch if there is search input
+      fetchStudentsDebounced();
+    } else {
+      // If search is cleared, restore the full list
+      setStudents(originalStudents);
     }
-  }, [search, originalStudents]);
+  };
 
   const handleKeyDown = async (e) => {
     if (e.key === "Enter") {
@@ -767,7 +854,42 @@ export const Selectyear = () => {
       await getStudents();
     }
   };
+  useEffect(() => {
+    if (!search.trim()) {
+      setStudents(originalStudents);
+    }
+  }, [search, originalStudents]);
   const loaderRef = useRef(null);
+
+  const [programs, setPrograms] = useState([]);
+  console.log("programs", programs);
+  const [selectedProgram, setSelectedProgram] = useState("");
+  console.log("selectedProgram", selectedProgram);
+
+  const [isVisible, setIsVisible] = useState(false);
+
+  const handleYearSelection = async (year) => {
+    if (selectedYear !== year) {
+      setSelectedYear(year); // Update the selected year if it's not already selected
+      // setStudents([]);
+      setOriginalStudents([]);
+      setOffset(0);
+      setHasMore(true);
+      setIsVisible(false);
+    }
+    await getStudentPrograms(year);
+  };
+
+  const handleSelectProgram = async (item) => {
+    console.log("item", item);
+    setStudents([]);
+    setSelectedProgram(item);
+    setOriginalStudents([]);
+    setOffset(0);
+    setHasMore(true);
+    setIsVisible(true);
+  };
+
   useEffect(() => {
     const getYears = async () => {
       try {
@@ -785,48 +907,65 @@ export const Selectyear = () => {
     getYears();
   }, []);
 
+  const getStudentPrograms = async (year) => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API_BASE_URL}/getYear`, {
+        params: {
+          year: year,
+          limit: 5000,
+        },
+      });
+
+      if (response.status === 200) {
+        const newStudents = response.data;
+        console.log("Fetched students:", newStudents);
+        // Extract unique programs from the students
+        const uniquePrograms = [
+          ...new Set(newStudents.map((student) => student.program)),
+        ];
+        setPrograms(uniquePrograms);
+      }
+    } catch (error) {
+      console.error("Error while getting students", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getStudents = async () => {
     try {
       setLoading(true);
       console.log(`Fetching students with limit: ${limit}, offset: ${offset}`);
 
-      const response = await axios.get(`${API_BASE_URL}/getYear`, {
+      const response = await axios.get(`${API_BASE_URL}/getProgram`, {
         params: {
-          year: selectedYear,
-          offset,
-          limit: search?.length > 0 ? 1 : limit,
-          search: search || "",
+          // year: selectedYear,
+          program: selectedProgram || "",
+          offset: search.trim() ? 0 : offset,
+          limit: search.trim() ? 1 : limit,
+          search: search.trim() || "",
         },
       });
+
       if (response.status === 200) {
         const newStudents = response.data;
         console.log("Fetched students:", newStudents);
 
-        // Check if we have more students to load or we've loaded all the data
         setHasMore(newStudents.length === limit);
 
-        // Add new students to the list
-        // setStudents(newStudents);
-        //  Set original students if search is empty and original list is not yet set
-        if (search?.trim() === "" && originalStudents.length === 0) {
-          setOriginalStudents(newStudents); // Store the full list
-        }
-
-        // // Update the students list
-        // setStudents(
-        //   search?.trim() === "" ? originalStudents : newStudents
-        // );
-        setStudents(
-          newStudents && search?.length === 0
-            ? (prevStudents) => [...prevStudents, ...newStudents]
-            : newStudents
+        setStudents((prevStudents) =>
+          search.trim() ? newStudents : [...prevStudents, ...newStudents]
         );
 
-        // Add checked state for the newly loaded students
         setCheckedStates((prevStates) => [
           ...prevStates,
           ...new Array(newStudents.length).fill(false),
         ]);
+
+        if (!search.trim() && originalStudents.length === 0) {
+          setOriginalStudents(newStudents);
+        }
       }
     } catch (error) {
       console.error("Error while getting students", error);
@@ -836,37 +975,19 @@ export const Selectyear = () => {
   };
 
   useEffect(() => {
-    if (!selectedYear) return;
+    if (!selectedProgram) return;
     if (search) {
       setOffset(0); // Reset offset for a new search
     }
 
     getStudents();
-  }, [selectedYear, offset, limit, entered]);
-
-  // useEffect(() => {
-  //   if (search) {
-  //     // Clear the previous students and reset offset when search changes
-  //     setStudents([]);
-  //     setOffset(0);
-  //     setHasMore(true);
-  //   }
-  // }, [entered]);
-
-  const debounce = (func, delay) => {
-    let timeout;
-    return function (...args) {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => func.apply(this, args), delay);
-    };
-  };
+  }, [selectedProgram, offset, limit, entered]);
 
   // Scroll event listener to detect bottom of the page
   useEffect(() => {
     const handleScroll = () => {
       if (loading || !hasMore) return;
 
-      // Calculate if the user has scrolled near the bottom (within 100px)
       if (
         window.innerHeight + window.scrollY >=
         document.documentElement.scrollHeight - 100
@@ -875,10 +996,10 @@ export const Selectyear = () => {
         setOffset((prevOffset) => prevOffset + limit);
       }
     };
-    // Add debounce to the scroll event listener
-    const debouncedHandleScroll = debounce(handleScroll, 200);
 
-    window.addEventListener("scroll", handleScroll);
+    const debouncedHandleScroll = debounce(handleScroll, 100);
+
+    window.addEventListener("scroll", debouncedHandleScroll);
     return () => window.removeEventListener("scroll", debouncedHandleScroll);
   }, [loading, hasMore, limit]);
 
@@ -889,15 +1010,6 @@ export const Selectyear = () => {
   //   setOffset(0);
   //   setHasMore(true);
   // };
-  const handleYearSelection = (year) => {
-    if (selectedYear !== year) {
-      setSelectedYear(year); // Update the selected year if it's not already selected
-      // setStudents([]);
-      setOriginalStudents([]);
-      setOffset(0);
-      setHasMore(true);
-    }
-  };
 
   return (
     <>
@@ -912,7 +1024,8 @@ export const Selectyear = () => {
                 onClick={() => handleYearSelection(item.year)}
                 style={{
                   cursor: selectedYear === item.year ? "pointer" : "pointer",
-                  backgroundColor: selectedYear === item.year ? "#f0f0f0" : "transparent",
+                  backgroundColor:
+                    selectedYear === item.year ? "#f0f0f0" : "transparent",
                 }}
               >
                 <td className="text-center">{item.year}</td>
@@ -929,17 +1042,32 @@ export const Selectyear = () => {
         </div>
       ) : (
         <Suspense fallback={<div>Loading...</div>}>
-          <Form>
-            <Form.Group controlId="searchInput">
-              <Form.Control
-                type="text"
-                placeholder="Search by roll number or name.."
-                value={search}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown} // Handle Enter key press
-              />
-            </Form.Group>
-          </Form>
+          <div className="d-flex gap-3 mt-4 ms-4 mb-3">
+            {programs?.map((item, index) => (
+              <div key={index}>
+                {/* <span onClick={()=> handleSelectProgram(item)}>{item}</span> */}
+                <button
+                  onClick={() => handleSelectProgram(item)}
+                  className="btn btn-primary"
+                >
+                  {item}
+                </button>
+              </div>
+            ))}
+          </div>
+          {isVisible && (
+            <Form>
+              <Form.Group controlId="searchInput">
+                <Form.Control
+                  type="text"
+                  placeholder="Search by roll number or name.."
+                  value={search}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyDown} // Handle Enter key press
+                />
+              </Form.Group>
+            </Form>
+          )}
           {students.length > 0 ? (
             <StudentRecords
               students={students}
@@ -958,6 +1086,7 @@ export const Selectyear = () => {
               getStudents={getStudents}
               setEntered={setEntered}
               entered={entered}
+              selectedProgram={selectedProgram}
             />
           ) : (
             <div className="mt-5 text-center">

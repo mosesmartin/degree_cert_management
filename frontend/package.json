@@ -10,10 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "address": "^2.0.3",
     "axios": "^1.7.7",
     "bootstrap": "^5.3.3",
     "fabric": "^6.4.3",
+    "get-ip": "^2.0.0",
     "i": "^0.3.7",
+    "lodash": "^4.17.21",
+    "mdb-react-ui-kit": "^9.0.0",
     "npm": "^10.9.0",
     "papaparse": "^5.4.1",
     "react": "^18.3.1",

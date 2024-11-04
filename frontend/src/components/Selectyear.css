@@ -27,3 +27,31 @@
     max-height: 500px; /* Adjust height as needed */
     overflow-y: auto;  /* Enable vertical scrolling */
   }
+
+  .graduation-year-selector {
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff;
+  }
+
+  .year-row:hover {
+    background-color: #f0f0f0;
+  }
+
+  .program-button {
+    padding: 10px 20px;
+    border-radius: 5px;
+    transition: background-color 0.3s, transform 0.2s;
+  }
+
+  .program-button:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+  }
+
+  .text-center {
+    text-align: center;
+  }

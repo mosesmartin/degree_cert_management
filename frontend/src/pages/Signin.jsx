@@ -17,15 +17,19 @@ export const Signin = () => {
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent default form submission behavior
     const payload = { email, password };
-
+  
     try {
       const response = await axios.post(`${API_BASE_URL}/signin`, payload);
       console.log("response", response);
       if (response.status === 200) {
         const user = response?.data?.user;
         const token = response?.data?.token;
+  
+        // Store user role along with user information
         sessionStorage.setItem("user", JSON.stringify(user));
         sessionStorage.setItem("token", token);
+        sessionStorage.setItem("user_role", user.role); // Store user role
+  
         navigate("/mainpage"); // Redirect to the main page after successful login
         toast.success(response?.data?.message);
       }
